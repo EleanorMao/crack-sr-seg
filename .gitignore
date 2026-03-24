@@ -1,0 +1,9 @@
+dataset/
+processed_data/
+checkpoints/
+outputs/
+
+.idea
+.vscode
+
+!.gitkeep
