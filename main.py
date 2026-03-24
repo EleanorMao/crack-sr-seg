@@ -75,11 +75,22 @@ def step_test_srcnn(args):
         device=args.device
     )
 
-    tester.test(
-        split=args.test_split,
-        save_results=True,
-        output_dir=args.output_restored
-    )
+    # Process specified split(s)
+    if args.test_split == 'all':
+        # Process all splits for full pipeline
+        for split in ['train', 'val', 'test']:
+            print(f"\nProcessing {split} split...")
+            tester.test(
+                split=split,
+                save_results=True,
+                output_dir=args.output_restored
+            )
+    else:
+        tester.test(
+            split=args.test_split,
+            save_results=True,
+            output_dir=args.output_restored
+        )
 
 
 def step_train_unet(args):
@@ -95,10 +106,13 @@ def step_train_unet(args):
     if args.resume_unet:
         trainer.load_checkpoint(args.resume_unet)
 
+    # --use-original takes priority (for baseline comparison)
+    use_restored = not args.use_original
+
     trainer.train(
         num_epochs=args.epochs_unet,
         batch_size=args.batch_size_unet,
-        use_restored=args.use_restored
+        use_restored=use_restored
     )
 
 
@@ -112,11 +126,14 @@ def step_test_unet(args):
         device=args.device
     )
 
+    # --use-original takes priority (for baseline comparison)
+    use_restored = not args.use_original
+
     tester.test(
         split=args.test_split,
         save_results=True,
         output_dir=args.output_predictions,
-        use_restored=args.use_restored,
+        use_restored=use_restored,
         threshold=args.threshold
     )
 
@@ -128,9 +145,17 @@ def run_full_pipeline(args):
 
     check_cuda()
 
+    # For full pipeline, process all splits for SRCNN restoration
+    original_test_split = args.test_split
+    args.test_split = 'all'
+
     step_preprocess(args)
     step_train_srcnn(args)
     step_test_srcnn(args)
+
+    # Restore original test_split for U-Net testing
+    args.test_split = original_test_split
+
     step_train_unet(args)
     step_test_unet(args)
 
@@ -179,8 +204,8 @@ Usage Examples:
                         help='Checkpoint path for SRCNN testing')
 
     parser.add_argument('--test-split', type=str, default='test',
-                        choices=['train', 'val', 'test'],
-                        help='Test split')
+                        choices=['train', 'val', 'test', 'all'],
+                        help='Test split (use "all" for full pipeline to process all splits)')
     parser.add_argument('--output-restored', type=str, default=None,
                         help='Output directory for restored images')
 
@@ -190,8 +215,10 @@ Usage Examples:
                         help='Batch size for U-Net')
     parser.add_argument('--pos-weight', type=float, default=5.0,
                         help='Positive sample weight (crack pixel weight)')
-    parser.add_argument('--use-restored', action='store_true', default=True,
-                        help='Use restored images to train U-Net')
+    parser.add_argument('--use-restored', action='store_true',
+                        help='Use SRCNN restored images to train U-Net (default: True)')
+    parser.add_argument('--use-original', action='store_true',
+                        help='Use original HR images instead of restored (for baseline comparison)')
     parser.add_argument('--resume-unet', type=str, default=None,
                         help='Checkpoint path to resume U-Net training')
     parser.add_argument('--checkpoint-unet', type=str, default=None,

@@ -22,7 +22,8 @@ class UNetDataset(Dataset):
         if input_dir is not None:
             self.input_dir = input_dir
         elif use_restored:
-            self.input_dir = RESTORED_DIR
+            # Use split-specific restored directory to avoid data leakage
+            self.input_dir = os.path.join(RESTORED_DIR, split)
             if not os.path.exists(self.input_dir):
                 print(f"Warning: Restored directory not found {self.input_dir}, using original")
                 self.input_dir = os.path.join(HR_IMAGE_DIR, split)
@@ -116,7 +117,8 @@ class UNetTestDataset(Dataset):
         if input_dir is not None:
             self.input_dir = input_dir
         elif use_restored:
-            self.input_dir = RESTORED_DIR
+            # Use split-specific restored directory to avoid data leakage
+            self.input_dir = os.path.join(RESTORED_DIR, split)
         else:
             self.input_dir = os.path.join(HR_IMAGE_DIR, split)
 

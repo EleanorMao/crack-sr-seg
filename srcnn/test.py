@@ -80,7 +80,8 @@ class SRCNNTester:
             metrics: Dict with PSNR and SSIM
         """
         if output_dir is None:
-            output_dir = RESTORED_DIR
+            # Use split-specific directory to avoid data leakage
+            output_dir = os.path.join(RESTORED_DIR, split)
 
         if save_results:
             os.makedirs(output_dir, exist_ok=True)

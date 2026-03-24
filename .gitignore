@@ -7,3 +7,7 @@ outputs/
 .vscode
 
 !.gitkeep
+
+*.md
+
+!README.md

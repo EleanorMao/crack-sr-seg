@@ -132,16 +132,22 @@ class CombinedLoss(nn.Module):
         super(CombinedLoss, self).__init__()
         self.bce_weight = bce_weight
         self.dice_weight = dice_weight
+        self.pos_weight = pos_weight
 
-        if pos_weight is not None:
-            self.bce = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([pos_weight]))
-        else:
-            self.bce = nn.BCEWithLogitsLoss()
-
+        # BCEWithLogitsLoss without pos_weight (will be handled in forward)
+        self.bce = nn.BCEWithLogitsLoss(reduction='mean')
         self.dice = DiceLoss()
 
     def forward(self, predictions, targets):
-        bce_loss = self.bce(predictions, targets)
+        # Handle pos_weight with correct device
+        if self.pos_weight is not None:
+            pos_weight = torch.tensor([self.pos_weight], device=predictions.device)
+            bce_loss = F.binary_cross_entropy_with_logits(
+                predictions, targets, pos_weight=pos_weight, reduction='mean'
+            )
+        else:
+            bce_loss = self.bce(predictions, targets)
+
         dice_loss = self.dice(predictions, targets)
         return self.bce_weight * bce_loss + self.dice_weight * dice_loss
 
