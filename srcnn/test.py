@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 
 from config import (
-    DEVICE, SRCNN_CHECKPOINT, RESTORED_DIR,
+    DEVICE, SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT, RESTORED_DIR,
     LR_IMAGE_DIR, HR_IMAGE_DIR, SRCNNConfig
 )
 from srcnn.model import SRCNN, ImprovedSRCNN, compute_psnr, compute_ssim
@@ -18,7 +18,15 @@ class SRCNNTester:
 
     def __init__(self, model_type='srcnn', checkpoint_path=None, device=None):
         self.device = device if device else DEVICE
+        self.model_type = model_type
         print(f"Using device: {self.device}")
+
+        # 根据 model_type 选择默认 checkpoint 路径
+        if checkpoint_path is None:
+            if model_type == 'improved':
+                checkpoint_path = IMPROVED_SRCNN_CHECKPOINT
+            else:
+                checkpoint_path = SRCNN_CHECKPOINT
 
         if model_type == 'improved':
             self.model = ImprovedSRCNN(
@@ -31,12 +39,13 @@ class SRCNNTester:
                 num_features=SRCNNConfig.NUM_FEATURES
             ).to(self.device)
 
-        self.load_checkpoint(checkpoint_path)
+        self.checkpoint_path = checkpoint_path
+        self.load_checkpoint()
         self.model.eval()
 
     def load_checkpoint(self, checkpoint_path=None):
         if checkpoint_path is None:
-            checkpoint_path = SRCNN_CHECKPOINT
+            checkpoint_path = self.checkpoint_path
 
         if not os.path.exists(checkpoint_path):
             raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")

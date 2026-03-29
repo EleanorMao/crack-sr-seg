@@ -25,6 +25,7 @@ ENHANCED_MASK_DIR = f'{PROCESSED_DIR}/enhanced_masks'
 # Model checkpoint paths
 CHECKPOINT_DIR = 'checkpoints'
 SRCNN_CHECKPOINT = f'{CHECKPOINT_DIR}/srcnn_best.pth'
+IMPROVED_SRCNN_CHECKPOINT = f'{CHECKPOINT_DIR}/improved_srcnn_best.pth'
 UNET_CHECKPOINT = f'{CHECKPOINT_DIR}/unet_best.pth'
 
 # Inference/output paths

@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 import numpy as np
 
-from config import DEVICE, CHECKPOINT_DIR, SRCNN_CHECKPOINT, SRCNNConfig
+from config import DEVICE, CHECKPOINT_DIR, SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT, SRCNNConfig
 from srcnn.model import SRCNN, ImprovedSRCNN, compute_psnr, compute_ssim
 from srcnn.dataset import get_srcnn_loaders
 
@@ -18,7 +18,15 @@ class SRCNNTrainer:
 
     def __init__(self, model_type='srcnn', device=None):
         self.device = device if device else DEVICE
+        self.model_type = model_type
         print(f"Using device: {self.device}")
+
+        # 根据模型类型选择保存路径
+        if model_type == 'improved':
+            self.checkpoint_path = IMPROVED_SRCNN_CHECKPOINT
+        else:
+            self.checkpoint_path = SRCNN_CHECKPOINT
+        print(f"Checkpoint path: {self.checkpoint_path}")
 
         if model_type == 'improved':
             self.model = ImprovedSRCNN(
@@ -113,12 +121,12 @@ class SRCNNTrainer:
         torch.save(checkpoint, last_path)
 
         if is_best:
-            torch.save(checkpoint, SRCNN_CHECKPOINT)
+            torch.save(checkpoint, self.checkpoint_path)
             print(f"Saved best model (PSNR: {self.best_psnr:.4f})")
 
     def load_checkpoint(self, checkpoint_path=None):
         if checkpoint_path is None:
-            checkpoint_path = SRCNN_CHECKPOINT
+            checkpoint_path = self.checkpoint_path
 
         if os.path.exists(checkpoint_path):
             checkpoint = torch.load(checkpoint_path, map_location=self.device)
