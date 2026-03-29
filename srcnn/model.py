@@ -47,9 +47,9 @@ class ImprovedSRCNN(nn.Module):
     """
     Improved SRCNN with:
     - Larger receptive field (first layer 9x9, last layer 5x5)
-    - BatchNorm for stable training
     - Residual connection for better gradient flow
     - Deeper non-linear mapping (3 middle layers)
+    - No BatchNorm (BN can hurt SR quality by smoothing details)
     """
 
     def __init__(self, num_channels=3, num_features=64):
@@ -57,17 +57,11 @@ class ImprovedSRCNN(nn.Module):
 
         # Feature extraction (large kernel for receptive field)
         self.conv1 = nn.Conv2d(num_channels, num_features, kernel_size=9, padding=4)
-        self.bn1 = nn.BatchNorm2d(num_features)
 
         # Non-linear mapping
         self.conv2 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
-        self.bn2 = nn.BatchNorm2d(num_features)
-
         self.conv3 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
-        self.bn3 = nn.BatchNorm2d(num_features)
-
         self.conv4 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
-        self.bn4 = nn.BatchNorm2d(num_features)
 
         # Reconstruction
         self.conv5 = nn.Conv2d(num_features, num_channels, kernel_size=5, padding=2)
@@ -84,10 +78,10 @@ class ImprovedSRCNN(nn.Module):
     def forward(self, x):
         identity = x  # Residual connection
 
-        x = F.relu(self.bn1(self.conv1(x)))
-        x = F.relu(self.bn2(self.conv2(x)))
-        x = F.relu(self.bn3(self.conv3(x)))
-        x = F.relu(self.bn4(self.conv4(x)))
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = F.relu(self.conv4(x))
         x = self.conv5(x)
 
         # Residual learning: output = residual + input
