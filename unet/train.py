@@ -162,11 +162,13 @@ class UNetTrainer:
             'best_iou': self.best_iou,
             'train_losses': self.train_losses,
             'val_ious': self.val_ious,
-            'use_restored': self.use_restored
+            'input_mode': self.input_mode
         }
 
         # Use mode-specific last checkpoint
-        if self.use_restored:
+        if self.input_mode == 'improved':
+            last_path = os.path.join(CHECKPOINT_DIR, 'unet_improved_last.pth')
+        elif self.input_mode == 'restored':
             last_path = os.path.join(CHECKPOINT_DIR, 'unet_restored_last.pth')
         else:
             last_path = os.path.join(CHECKPOINT_DIR, 'unet_original_last.pth')
@@ -193,14 +195,18 @@ class UNetTrainer:
             return checkpoint.get('epoch', 0)
         return 0
 
-    def train(self, num_epochs=None, batch_size=None, num_workers=None, use_restored=True):
+    def train(self, num_epochs=None, batch_size=None, num_workers=None, input_mode=None):
         if num_epochs is None:
             num_epochs = UNetConfig.NUM_EPOCHS
+
+        # Use instance input_mode if not specified
+        if input_mode is None:
+            input_mode = self.input_mode
 
         train_loader, val_loader = get_unet_loaders(
             batch_size=batch_size,
             num_workers=num_workers,
-            use_restored=use_restored
+            input_mode=input_mode
         )
 
         print(f"\nTraining U-Net")
@@ -208,7 +214,7 @@ class UNetTrainer:
         print(f"Val samples: {len(val_loader.dataset)}")
         print(f"Epochs: {num_epochs}")
         print(f"Batch size: {train_loader.batch_size}")
-        print(f"Use restored images: {use_restored}")
+        print(f"Input mode: {input_mode}")
         print("-" * 50)
 
         start_epoch = 0
@@ -250,12 +256,12 @@ class UNetTrainer:
         return self.model
 
 
-def train_unet(epochs=None, batch_size=None, device=None, use_restored=True, pos_weight=None):
-    trainer = UNetTrainer(device=device, pos_weight=pos_weight, use_restored=use_restored)
+def train_unet(epochs=None, batch_size=None, device=None, input_mode='restored', pos_weight=None):
+    trainer = UNetTrainer(device=device, pos_weight=pos_weight, input_mode=input_mode)
     model = trainer.train(
         num_epochs=epochs,
         batch_size=batch_size,
-        use_restored=use_restored
+        input_mode=input_mode
     )
     return model
 
@@ -268,15 +274,16 @@ if __name__ == '__main__':
     parser.add_argument('--batch-size', type=int, default=None, help='Batch size')
     parser.add_argument('--device', type=str, default=None, choices=['cuda', 'cpu'],
                         help='Compute device')
-    parser.add_argument('--use-original', action='store_true',
-                        help='Use original images instead of restored')
+    parser.add_argument('--input-mode', type=str, default='restored',
+                        choices=['original', 'restored', 'improved'],
+                        help='Input mode: original (HR), restored (basic SRCNN), improved (improved SRCNN)')
     parser.add_argument('--pos-weight', type=float, default=None,
                         help='Positive sample weight')
     parser.add_argument('--resume', type=str, default=None, help='Checkpoint path to resume')
 
     args = parser.parse_args()
 
-    trainer = UNetTrainer(device=args.device, pos_weight=args.pos_weight)
+    trainer = UNetTrainer(device=args.device, pos_weight=args.pos_weight, input_mode=args.input_mode)
 
     if args.resume:
         trainer.load_checkpoint(args.resume)
@@ -284,5 +291,5 @@ if __name__ == '__main__':
     trainer.train(
         num_epochs=args.epochs,
         batch_size=args.batch_size,
-        use_restored=not args.use_original
+        input_mode=args.input_mode
     )
