@@ -8,7 +8,7 @@ from tqdm import tqdm
 from config import (
     DEVICE, SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT,
     IMPROVED_SRCNN_BN_CHECKPOINT, IMPROVED_SRCNN_ALL3X3_CHECKPOINT,
-    RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_3X3,
+    RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_BN, RESTORED_DIR_IMPROVED_3X3,
     LR_IMAGE_DIR, HR_IMAGE_DIR, SRCNNConfig
 )
 from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, compute_psnr, compute_ssim
@@ -38,7 +38,7 @@ class SRCNNTester:
     OUTPUT_DIRS = {
         'srcnn': RESTORED_DIR,
         'improved': RESTORED_DIR_IMPROVED,
-        'improved_bn': RESTORED_DIR_IMPROVED,  # 暂时复用
+        'improved_bn': RESTORED_DIR_IMPROVED_BN,
         'improved_3x3': RESTORED_DIR_IMPROVED_3X3,
     }
 

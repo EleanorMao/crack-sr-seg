@@ -40,6 +40,7 @@ UNET_CHECKPOINT_ORIGINAL = f'{CHECKPOINT_DIR}/unet_original_best.pth'  # Trained
 OUTPUT_DIR = 'outputs'
 RESTORED_DIR = f'{OUTPUT_DIR}/restored'  # Restored images (default, for basic SRCNN)
 RESTORED_DIR_IMPROVED = f'{OUTPUT_DIR}/restored_improved'  # Restored by improved SRCNN
+RESTORED_DIR_IMPROVED_BN = f'{OUTPUT_DIR}/restored_improved_bn'  # Restored by improved SRCNN with BatchNorm
 RESTORED_DIR_IMPROVED_3X3 = f'{OUTPUT_DIR}/restored_improved_3x3'  # Restored by improved_3x3 SRCNN
 PREDICTIONS_DIR = f'{OUTPUT_DIR}/predictions'  # Segmentation predictions (default)
 
