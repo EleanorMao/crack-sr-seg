@@ -198,6 +198,9 @@ class ResultsVisualizer:
 
             pred_path = os.path.join(pred_dir, filename.replace('.png', '_pred.png'))
             pred_mask = cv2.imread(pred_path, cv2.IMREAD_GRAYSCALE) if os.path.exists(pred_path) else gt_mask
+            # Ensure pred_mask has same size as lr_img
+            if pred_mask is not None and pred_mask.shape[:2] != lr_img.shape[:2]:
+                pred_mask = cv2.resize(pred_mask, (lr_img.shape[1], lr_img.shape[0]))
 
             # Convert BGR to RGB
             lr_img = cv2.cvtColor(lr_img, cv2.COLOR_BGR2RGB)
@@ -251,6 +254,9 @@ class ResultsVisualizer:
 
             pred_path = os.path.join(pred_dir, filename.replace('.png', '_pred.png'))
             pred_mask = cv2.imread(pred_path, cv2.IMREAD_GRAYSCALE) if os.path.exists(pred_path) else gt_mask
+            # Ensure pred_mask has same size as lr_img
+            if pred_mask is not None and pred_mask.shape[:2] != lr_img.shape[:2]:
+                pred_mask = cv2.resize(pred_mask, (lr_img.shape[1], lr_img.shape[0]))
 
             lr_img = cv2.cvtColor(lr_img, cv2.COLOR_BGR2RGB)
 
