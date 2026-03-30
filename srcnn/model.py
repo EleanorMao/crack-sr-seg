@@ -88,6 +88,104 @@ class ImprovedSRCNN(nn.Module):
         return x + identity
 
 
+class ImprovedSRCNN_BN(nn.Module):
+    """
+    Improved SRCNN with BatchNorm:
+    - Same architecture as ImprovedSRCNN but with BatchNorm layers
+    - BatchNorm can help training stability but may affect SR quality
+    """
+
+    def __init__(self, num_channels=3, num_features=64):
+        super(ImprovedSRCNN_BN, self).__init__()
+
+        # Feature extraction
+        self.conv1 = nn.Conv2d(num_channels, num_features, kernel_size=9, padding=4)
+        self.bn1 = nn.BatchNorm2d(num_features)
+
+        # Non-linear mapping
+        self.conv2 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(num_features)
+
+        self.conv3 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(num_features)
+
+        self.conv4 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
+        self.bn4 = nn.BatchNorm2d(num_features)
+
+        # Reconstruction
+        self.conv5 = nn.Conv2d(num_features, num_channels, kernel_size=5, padding=2)
+
+        self._initialize_weights()
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.ones_(m.weight)
+                nn.init.zeros_(m.bias)
+
+    def forward(self, x):
+        identity = x
+
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.bn3(self.conv3(x)))
+        x = F.relu(self.bn4(self.conv4(x)))
+        x = self.conv5(x)
+
+        return x + identity
+
+
+class ImprovedSRCNN_All3x3(nn.Module):
+    """
+    Improved SRCNN with all 3x3 kernels:
+    - All convolution layers use 3x3 kernels (instead of 9x9 and 5x5)
+    - Deeper network to compensate for smaller receptive field
+    - Residual connection preserved
+    """
+
+    def __init__(self, num_channels=3, num_features=64):
+        super(ImprovedSRCNN_All3x3, self).__init__()
+
+        # Feature extraction (3x3 instead of 9x9)
+        self.conv1 = nn.Conv2d(num_channels, num_features, kernel_size=3, padding=1)
+
+        # Non-linear mapping (more layers to build receptive field)
+        self.conv2 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
+        self.conv3 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
+        self.conv4 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
+        self.conv5 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
+        self.conv6 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
+
+        # Reconstruction (3x3 instead of 5x5)
+        self.conv7 = nn.Conv2d(num_features, num_channels, kernel_size=3, padding=1)
+
+        self._initialize_weights()
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+
+    def forward(self, x):
+        identity = x
+
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = F.relu(self.conv4(x))
+        x = F.relu(self.conv5(x))
+        x = F.relu(self.conv6(x))
+        x = self.conv7(x)
+
+        return x + identity
+
+
 def compute_psnr(img1, img2):
     """Compute PSNR (Peak Signal-to-Noise Ratio)"""
     mse = torch.mean((img1 - img2) ** 2)

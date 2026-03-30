@@ -8,36 +8,50 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 import numpy as np
 
-from config import DEVICE, CHECKPOINT_DIR, SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT, SRCNNConfig
-from srcnn.model import SRCNN, ImprovedSRCNN, compute_psnr, compute_ssim
+from config import DEVICE, CHECKPOINT_DIR, SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT, IMPROVED_SRCNN_BN_CHECKPOINT, IMPROVED_SRCNN_ALL3X3_CHECKPOINT, SRCNNConfig
+from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, compute_psnr, compute_ssim
 from srcnn.dataset import get_srcnn_loaders
 
 
 class SRCNNTrainer:
     """SRCNN Trainer"""
 
+    # 模型类型映射
+    MODEL_TYPES = {
+        'srcnn': (SRCNN, 'SRCNN (baseline)'),
+        'improved': (ImprovedSRCNN, 'Improved SRCNN'),
+        'improved_bn': (ImprovedSRCNN_BN, 'Improved SRCNN with BatchNorm'),
+        'improved_3x3': (ImprovedSRCNN_All3x3, 'Improved SRCNN all 3x3 kernels'),
+    }
+
+    # checkpoint路径映射
+    CHECKPOINT_PATHS = {
+        'srcnn': SRCNN_CHECKPOINT,
+        'improved': IMPROVED_SRCNN_CHECKPOINT,
+        'improved_bn': IMPROVED_SRCNN_BN_CHECKPOINT,
+        'improved_3x3': IMPROVED_SRCNN_ALL3X3_CHECKPOINT,
+    }
+
     def __init__(self, model_type='srcnn', device=None):
         self.device = device if device else DEVICE
         self.model_type = model_type
         print(f"Using device: {self.device}")
 
-        # 根据模型类型选择保存路径
-        if model_type == 'improved':
-            self.checkpoint_path = IMPROVED_SRCNN_CHECKPOINT
-        else:
-            self.checkpoint_path = SRCNN_CHECKPOINT
+        # 验证模型类型
+        if model_type not in self.MODEL_TYPES:
+            raise ValueError(f"Unknown model_type: {model_type}. Valid options: {list(self.MODEL_TYPES.keys())}")
+
+        # 获取checkpoint路径
+        self.checkpoint_path = self.CHECKPOINT_PATHS[model_type]
+        print(f"Model: {self.MODEL_TYPES[model_type][1]}")
         print(f"Checkpoint path: {self.checkpoint_path}")
 
-        if model_type == 'improved':
-            self.model = ImprovedSRCNN(
-                num_channels=SRCNNConfig.NUM_CHANNELS,
-                num_features=SRCNNConfig.NUM_FEATURES
-            ).to(self.device)
-        else:
-            self.model = SRCNN(
-                num_channels=SRCNNConfig.NUM_CHANNELS,
-                num_features=SRCNNConfig.NUM_FEATURES
-            ).to(self.device)
+        # 创建模型
+        model_class = self.MODEL_TYPES[model_type][0]
+        self.model = model_class(
+            num_channels=SRCNNConfig.NUM_CHANNELS,
+            num_features=SRCNNConfig.NUM_FEATURES
+        ).to(self.device)
 
         self.criterion = nn.MSELoss()
 
@@ -199,8 +213,9 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Train SRCNN')
-    parser.add_argument('--model', type=str, default='srcnn', choices=['srcnn', 'improved'],
-                        help='Model type')
+    parser.add_argument('--model', type=str, default='srcnn',
+                        choices=['srcnn', 'improved', 'improved_bn', 'improved_3x3'],
+                        help='Model type: srcnn, improved, improved_bn (with BatchNorm), improved_3x3 (all 3x3 kernels)')
     parser.add_argument('--epochs', type=int, default=None, help='Number of epochs')
     parser.add_argument('--batch-size', type=int, default=None, help='Batch size')
     parser.add_argument('--device', type=str, default=None, choices=['cuda', 'cpu'],

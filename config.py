@@ -26,6 +26,8 @@ ENHANCED_MASK_DIR = f'{PROCESSED_DIR}/enhanced_masks'
 CHECKPOINT_DIR = 'checkpoints'
 SRCNN_CHECKPOINT = f'{CHECKPOINT_DIR}/srcnn_best.pth'
 IMPROVED_SRCNN_CHECKPOINT = f'{CHECKPOINT_DIR}/improved_srcnn_best.pth'
+IMPROVED_SRCNN_BN_CHECKPOINT = f'{CHECKPOINT_DIR}/improved_srcnn_bn_best.pth'
+IMPROVED_SRCNN_ALL3X3_CHECKPOINT = f'{CHECKPOINT_DIR}/improved_srcnn_all3x3_best.pth'
 
 # U-Net checkpoints (different for each training mode)
 UNET_CHECKPOINT = f'{CHECKPOINT_DIR}/unet_best.pth'

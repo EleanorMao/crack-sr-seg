@@ -90,26 +90,29 @@ python main.py --mode test-srcnn --model-type improved --test-split all
 
 ```bash
 # Original HR images
-python main.py --mode train-unet --input-mode original --epochs-unet 100
+python main.py --mode train-unet --use-original --epochs-unet 100
+# or: python main.py --mode train-unet --input-mode original --epochs-unet 100
 
 # Basic SRCNN restored images
-python main.py --mode train-unet --input-mode restored --epochs-unet 100
+python main.py --mode train-unet --use-restored --epochs-unet 100
+# or: python main.py --mode train-unet --input-mode restored --epochs-unet 100
 
 # Improved SRCNN restored images
-python main.py --mode train-unet --input-mode improved --epochs-unet 100
+python main.py --mode train-unet --use-improved --epochs-unet 100
+# or: python main.py --mode train-unet --input-mode improved --epochs-unet 100
 ```
 
 #### 5. Test U-Net
 
 ```bash
 # Original -> outputs/predictions_original/
-python main.py --mode test-unet --input-mode original --test-split test
+python main.py --mode test-unet --use-original --test-split test
 
 # Basic SRCNN -> outputs/predictions_restored/
-python main.py --mode test-unet --input-mode restored --test-split test
+python main.py --mode test-unet --use-restored --test-split test
 
 # Improved SRCNN -> outputs/predictions_improved/
-python main.py --mode test-unet --input-mode improved --test-split test
+python main.py --mode test-unet --use-improved --test-split test
 ```
 
 ## Model Comparison Table
@@ -127,6 +130,9 @@ python main.py --mode test-unet --input-mode improved --test-split test
 | `--mode` | Run mode (preprocess/train-srcnn/test-srcnn/train-unet/test-unet/full) | full |
 | `--model-type` | SRCNN type (srcnn/improved) | srcnn |
 | `--input-mode` | U-Net input (original/restored/improved) | restored |
+| `--use-original` | Shortcut for `--input-mode original` | - |
+| `--use-restored` | Shortcut for `--input-mode restored` | - |
+| `--use-improved` | Shortcut for `--input-mode improved` | - |
 | `--epochs-srcnn` | SRCNN epochs | 100 |
 | `--epochs-unet` | U-Net epochs | 100 |
 | `--pos-weight` | Crack pixel weight | 5.0 |
