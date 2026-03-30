@@ -186,8 +186,8 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Run baseline experiments')
-    parser.add_argument('--checkpoint', type=str, default='checkpoints/unet_best.pth',
-                        help='Path to trained U-Net checkpoint')
+    parser.add_argument('--checkpoint', type=str, default='checkpoints/unet_restored_best.pth',
+                        help='Path to trained U-Net checkpoint (default: unet_restored_best.pth)')
     parser.add_argument('--split', type=str, default='test',
                         choices=['train', 'val', 'test'],
                         help='Dataset split to evaluate')

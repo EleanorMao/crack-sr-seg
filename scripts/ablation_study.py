@@ -239,8 +239,8 @@ def run_ablation_srcnn_vs_original(results_file='results/ablation_srcnn_vs_origi
 
     results = {}
 
-    # Use the best U-Net model
-    ckpt_path = 'checkpoints/unet_best.pth'
+    # Use the restored U-Net model (trained with SRCNN restored images)
+    ckpt_path = 'checkpoints/unet_restored_best.pth'
 
     if not os.path.exists(ckpt_path):
         print(f"[ERROR] U-Net checkpoint not found: {ckpt_path}")

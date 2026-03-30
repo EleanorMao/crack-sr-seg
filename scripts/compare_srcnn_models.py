@@ -314,7 +314,17 @@ def main():
     for model_type, metrics in restoration_metrics.items():
         name = MODEL_CONFIGS[model_type]['name']
         print(f"{name:<30} {metrics['psnr']:>12.4f} {metrics['ssim']:>12.4f}")
-    print(f"\nImprovement: PSNR {psnr_improve:+.4f} dB, SSIM {ssim_improve:+.4f}")
+
+    # Calculate improvement if we have multiple models
+    if len(restoration_metrics) > 1:
+        baseline_type = args.models[0]
+        baseline_metrics = restoration_metrics[baseline_type]
+        print(f"\nImprovement over {MODEL_CONFIGS[baseline_type]['name']}:")
+        for model_type, metrics in restoration_metrics.items():
+            if model_type != baseline_type:
+                psnr_improve = metrics['psnr'] - baseline_metrics['psnr']
+                ssim_improve = metrics['ssim'] - baseline_metrics['ssim']
+                print(f"  {MODEL_CONFIGS[model_type]['name']}: PSNR {psnr_improve:+.4f} dB, SSIM {ssim_improve:+.4f}")
 
     if args.skip_train:
         print("\nSkipping U-Net training (--skip-train)")
