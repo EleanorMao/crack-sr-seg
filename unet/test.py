@@ -105,7 +105,7 @@ class UNetTester:
             with torch.no_grad():
                 img_input = img.unsqueeze(0).to(self.device)
                 output = self.model(img_input)
-                output = torch.sigmoid(output)
+                # Don't apply sigmoid here - compute_iou will do it
 
             mask_tensor = mask_gt.unsqueeze(0).to(self.device)
             iou = compute_iou(output, mask_tensor).item()
@@ -124,7 +124,7 @@ class UNetTester:
             })
 
             if save_results:
-                pred_mask = output.squeeze(0).squeeze(0).cpu().numpy()
+                pred_mask = torch.sigmoid(output).squeeze(0).squeeze(0).cpu().numpy()
                 pred_mask = (pred_mask * 255).astype(np.uint8)
 
                 vis = self._create_visualization(
