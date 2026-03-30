@@ -26,7 +26,11 @@ ENHANCED_MASK_DIR = f'{PROCESSED_DIR}/enhanced_masks'
 CHECKPOINT_DIR = 'checkpoints'
 SRCNN_CHECKPOINT = f'{CHECKPOINT_DIR}/srcnn_best.pth'
 IMPROVED_SRCNN_CHECKPOINT = f'{CHECKPOINT_DIR}/improved_srcnn_best.pth'
+
+# U-Net checkpoints (different for each training mode)
 UNET_CHECKPOINT = f'{CHECKPOINT_DIR}/unet_best.pth'
+UNET_CHECKPOINT_RESTORED = f'{CHECKPOINT_DIR}/unet_restored_best.pth'  # Trained with SRCNN restored images
+UNET_CHECKPOINT_ORIGINAL = f'{CHECKPOINT_DIR}/unet_original_best.pth'  # Trained with original HR images
 
 # Inference/output paths
 OUTPUT_DIR = 'outputs'

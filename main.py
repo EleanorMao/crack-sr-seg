@@ -121,13 +121,14 @@ def step_test_unet(args):
     print("Step 5: U-Net Testing (Crack Segmentation)")
     print("=" * 50)
 
-    tester = UNetTester(
-        checkpoint_path=args.checkpoint_unet,
-        device=args.device
-    )
-
     # --use-original takes priority (for baseline comparison)
     use_restored = not args.use_original
+
+    tester = UNetTester(
+        checkpoint_path=args.checkpoint_unet,
+        device=args.device,
+        use_restored=use_restored
+    )
 
     tester.test(
         split=args.test_split,

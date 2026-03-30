@@ -8,7 +8,8 @@ from tqdm import tqdm
 import numpy as np
 
 from config import (
-    DEVICE, CHECKPOINT_DIR, UNET_CHECKPOINT, UNetConfig
+    DEVICE, CHECKPOINT_DIR, UNET_CHECKPOINT, UNET_CHECKPOINT_RESTORED,
+    UNET_CHECKPOINT_ORIGINAL, UNetConfig
 )
 from unet.model import (
     UNet, CombinedLoss, DiceLoss,
@@ -20,9 +21,18 @@ from unet.dataset import get_unet_loaders
 class UNetTrainer:
     """U-Net Trainer"""
 
-    def __init__(self, device=None, pos_weight=None):
+    def __init__(self, device=None, pos_weight=None, use_restored=True):
         self.device = device if device else DEVICE
+        self.use_restored = use_restored
         print(f"Using device: {self.device}")
+
+        # Select checkpoint path based on training mode
+        if use_restored:
+            self.checkpoint_path = UNET_CHECKPOINT_RESTORED
+            print(f"Training mode: SRCNN restored images")
+        else:
+            self.checkpoint_path = UNET_CHECKPOINT_ORIGINAL
+            print(f"Training mode: Original HR images")
 
         if pos_weight is None:
             pos_weight = UNetConfig.POSITIVE_WEIGHT
@@ -141,19 +151,24 @@ class UNetTrainer:
             'scheduler_state_dict': self.scheduler.state_dict(),
             'best_iou': self.best_iou,
             'train_losses': self.train_losses,
-            'val_ious': self.val_ious
+            'val_ious': self.val_ious,
+            'use_restored': self.use_restored
         }
 
-        last_path = os.path.join(CHECKPOINT_DIR, 'unet_last.pth')
+        # Use mode-specific last checkpoint
+        if self.use_restored:
+            last_path = os.path.join(CHECKPOINT_DIR, 'unet_restored_last.pth')
+        else:
+            last_path = os.path.join(CHECKPOINT_DIR, 'unet_original_last.pth')
         torch.save(checkpoint, last_path)
 
         if is_best:
-            torch.save(checkpoint, UNET_CHECKPOINT)
+            torch.save(checkpoint, self.checkpoint_path)
             print(f"Saved best model (IoU: {self.best_iou:.4f})")
 
     def load_checkpoint(self, checkpoint_path=None):
         if checkpoint_path is None:
-            checkpoint_path = UNET_CHECKPOINT
+            checkpoint_path = self.checkpoint_path
 
         if os.path.exists(checkpoint_path):
             checkpoint = torch.load(checkpoint_path, map_location=self.device)
@@ -226,7 +241,7 @@ class UNetTrainer:
 
 
 def train_unet(epochs=None, batch_size=None, device=None, use_restored=True, pos_weight=None):
-    trainer = UNetTrainer(device=device, pos_weight=pos_weight)
+    trainer = UNetTrainer(device=device, pos_weight=pos_weight, use_restored=use_restored)
     model = trainer.train(
         num_epochs=epochs,
         batch_size=batch_size,

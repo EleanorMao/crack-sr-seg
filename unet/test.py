@@ -6,8 +6,8 @@ import numpy as np
 from tqdm import tqdm
 
 from config import (
-    DEVICE, UNET_CHECKPOINT, PREDICTIONS_DIR,
-    HR_IMAGE_DIR, RESTORED_DIR, ENHANCED_MASK_DIR, UNetConfig
+    DEVICE, UNET_CHECKPOINT, UNET_CHECKPOINT_RESTORED, UNET_CHECKPOINT_ORIGINAL,
+    PREDICTIONS_DIR, HR_IMAGE_DIR, RESTORED_DIR, ENHANCED_MASK_DIR, UNetConfig
 )
 from unet.model import (
     UNet, compute_iou, compute_dice_coeff, compute_pixel_accuracy
@@ -18,9 +18,17 @@ from unet.dataset import get_unet_test_loader, UNetDataset
 class UNetTester:
     """U-Net Tester"""
 
-    def __init__(self, checkpoint_path=None, device=None):
+    def __init__(self, checkpoint_path=None, device=None, use_restored=True):
         self.device = device if device else DEVICE
+        self.use_restored = use_restored
         print(f"Using device: {self.device}")
+
+        # Select default checkpoint based on use_restored
+        if checkpoint_path is None:
+            if use_restored:
+                checkpoint_path = UNET_CHECKPOINT_RESTORED
+            else:
+                checkpoint_path = UNET_CHECKPOINT_ORIGINAL
 
         self.model = UNet(
             in_channels=UNetConfig.IN_CHANNELS,
