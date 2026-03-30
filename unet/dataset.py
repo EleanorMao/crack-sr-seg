@@ -7,27 +7,39 @@ import numpy as np
 import random
 
 from config import (
-    HR_IMAGE_DIR, RESTORED_DIR, ENHANCED_MASK_DIR, UNetConfig, DEVICE
+    HR_IMAGE_DIR, RESTORED_DIR, RESTORED_DIR_IMPROVED, ENHANCED_MASK_DIR, UNetConfig, DEVICE
 )
 
 
 class UNetDataset(Dataset):
     """U-Net Training Dataset"""
 
-    def __init__(self, split='train', use_restored=True, transform=None,
+    def __init__(self, split='train', input_mode='restored', transform=None,
                  input_dir=None, mask_dir=None):
+        """
+        Args:
+            split: 'train', 'val', or 'test'
+            input_mode: 'original', 'restored', or 'improved'
+            transform: Optional transforms
+            input_dir: Override input directory
+            mask_dir: Override mask directory
+        """
         self.split = split
         self.transform = transform
+        self.input_mode = input_mode
 
         if input_dir is not None:
             self.input_dir = input_dir
-        elif use_restored:
-            # Use split-specific restored directory to avoid data leakage
+        elif input_mode == 'improved':
+            self.input_dir = os.path.join(RESTORED_DIR_IMPROVED, split)
+            if not os.path.exists(self.input_dir):
+                print(f"Warning: Improved restored directory not found {self.input_dir}")
+        elif input_mode == 'restored':
             self.input_dir = os.path.join(RESTORED_DIR, split)
             if not os.path.exists(self.input_dir):
                 print(f"Warning: Restored directory not found {self.input_dir}, using original")
                 self.input_dir = os.path.join(HR_IMAGE_DIR, split)
-        else:
+        else:  # original
             self.input_dir = os.path.join(HR_IMAGE_DIR, split)
 
         if mask_dir is not None:
@@ -145,15 +157,21 @@ class UNetTestDataset(Dataset):
         return img_tensor, filename
 
 
-def get_unet_loaders(batch_size=None, num_workers=None, use_restored=True):
-    """Get training and validation data loaders"""
+def get_unet_loaders(batch_size=None, num_workers=None, input_mode='restored'):
+    """Get training and validation data loaders
+
+    Args:
+        batch_size: Batch size
+        num_workers: Number of workers
+        input_mode: 'original', 'restored', or 'improved'
+    """
     if batch_size is None:
         batch_size = UNetConfig.BATCH_SIZE
     if num_workers is None:
         num_workers = UNetConfig.NUM_WORKERS
 
-    train_dataset = UNetDataset(split='train', use_restored=use_restored)
-    val_dataset = UNetDataset(split='val', use_restored=use_restored)
+    train_dataset = UNetDataset(split='train', input_mode=input_mode)
+    val_dataset = UNetDataset(split='val', input_mode=input_mode)
 
     train_loader = DataLoader(
         train_dataset,

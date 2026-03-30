@@ -8,8 +8,9 @@ from tqdm import tqdm
 import numpy as np
 
 from config import (
-    DEVICE, CHECKPOINT_DIR, UNET_CHECKPOINT, UNET_CHECKPOINT_RESTORED,
-    UNET_CHECKPOINT_ORIGINAL, UNetConfig
+    DEVICE, CHECKPOINT_DIR,
+    UNET_CHECKPOINT_RESTORED, UNET_CHECKPOINT_IMPROVED, UNET_CHECKPOINT_ORIGINAL,
+    UNetConfig
 )
 from unet.model import (
     UNet, CombinedLoss, DiceLoss,
@@ -21,16 +22,25 @@ from unet.dataset import get_unet_loaders
 class UNetTrainer:
     """U-Net Trainer"""
 
-    def __init__(self, device=None, pos_weight=None, use_restored=True):
+    def __init__(self, device=None, pos_weight=None, input_mode='restored'):
+        """
+        Args:
+            device: Device to use
+            pos_weight: Positive class weight for loss
+            input_mode: 'original', 'restored', or 'improved'
+        """
         self.device = device if device else DEVICE
-        self.use_restored = use_restored
+        self.input_mode = input_mode
         print(f"Using device: {self.device}")
 
         # Select checkpoint path based on training mode
-        if use_restored:
+        if input_mode == 'improved':
+            self.checkpoint_path = UNET_CHECKPOINT_IMPROVED
+            print(f"Training mode: Improved SRCNN restored images")
+        elif input_mode == 'restored':
             self.checkpoint_path = UNET_CHECKPOINT_RESTORED
-            print(f"Training mode: SRCNN restored images")
-        else:
+            print(f"Training mode: Basic SRCNN restored images")
+        else:  # original
             self.checkpoint_path = UNET_CHECKPOINT_ORIGINAL
             print(f"Training mode: Original HR images")
 

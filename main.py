@@ -98,13 +98,18 @@ def step_train_unet(args):
     print("Step 4: U-Net Training")
     print("=" * 50)
 
-    # --use-original takes priority (for baseline comparison)
-    use_restored = not args.use_original
+    # Determine input mode from arguments
+    if hasattr(args, 'input_mode'):
+        input_mode = args.input_mode
+    elif args.use_original:
+        input_mode = 'original'
+    else:
+        input_mode = 'restored'
 
     trainer = UNetTrainer(
         device=args.device,
         pos_weight=args.pos_weight,
-        use_restored=use_restored
+        input_mode=input_mode
     )
 
     if args.resume_unet:
@@ -113,7 +118,7 @@ def step_train_unet(args):
     trainer.train(
         num_epochs=args.epochs_unet,
         batch_size=args.batch_size_unet,
-        use_restored=use_restored
+        input_mode=input_mode
     )
 
 
@@ -122,20 +127,25 @@ def step_test_unet(args):
     print("Step 5: U-Net Testing (Crack Segmentation)")
     print("=" * 50)
 
-    # --use-original takes priority (for baseline comparison)
-    use_restored = not args.use_original
+    # Determine input mode from arguments
+    if hasattr(args, 'input_mode'):
+        input_mode = args.input_mode
+    elif args.use_original:
+        input_mode = 'original'
+    else:
+        input_mode = 'restored'
 
     tester = UNetTester(
         checkpoint_path=args.checkpoint_unet,
         device=args.device,
-        use_restored=use_restored
+        input_mode=input_mode
     )
 
     tester.test(
         split=args.test_split,
         save_results=True,
         output_dir=args.output_predictions,
-        use_restored=use_restored,
+        input_mode=input_mode,
         threshold=args.threshold
     )
 
@@ -217,10 +227,13 @@ Usage Examples:
                         help='Batch size for U-Net')
     parser.add_argument('--pos-weight', type=float, default=5.0,
                         help='Positive sample weight (crack pixel weight)')
-    parser.add_argument('--use-restored', action='store_true',
-                        help='Use SRCNN restored images to train U-Net (default: True)')
+    parser.add_argument('--input-mode', type=str, default='restored',
+                        choices=['original', 'restored', 'improved'],
+                        help='Input mode: original (HR), restored (basic SRCNN), improved (improved SRCNN)')
     parser.add_argument('--use-original', action='store_true',
-                        help='Use original HR images instead of restored (for baseline comparison)')
+                        help='Shortcut for --input-mode original (for baseline comparison)')
+    parser.add_argument('--use-improved', action='store_true',
+                        help='Shortcut for --input-mode improved')
     parser.add_argument('--resume-unet', type=str, default=None,
                         help='Checkpoint path to resume U-Net training')
     parser.add_argument('--checkpoint-unet', type=str, default=None,
@@ -232,6 +245,13 @@ Usage Examples:
                         help='Binarization threshold')
 
     args = parser.parse_args()
+
+    # Handle shortcut arguments for input_mode
+    if args.use_original:
+        args.input_mode = 'original'
+    elif args.use_improved:
+        args.input_mode = 'improved'
+    # else: use the value from --input-mode (default: 'restored')
 
     if args.mode == 'full':
         run_full_pipeline(args)

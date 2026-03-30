@@ -29,7 +29,8 @@ IMPROVED_SRCNN_CHECKPOINT = f'{CHECKPOINT_DIR}/improved_srcnn_best.pth'
 
 # U-Net checkpoints (different for each training mode)
 UNET_CHECKPOINT = f'{CHECKPOINT_DIR}/unet_best.pth'
-UNET_CHECKPOINT_RESTORED = f'{CHECKPOINT_DIR}/unet_restored_best.pth'  # Trained with SRCNN restored images
+UNET_CHECKPOINT_RESTORED = f'{CHECKPOINT_DIR}/unet_restored_best.pth'  # Trained with basic SRCNN restored images
+UNET_CHECKPOINT_IMPROVED = f'{CHECKPOINT_DIR}/unet_improved_best.pth'  # Trained with improved SRCNN restored images
 UNET_CHECKPOINT_ORIGINAL = f'{CHECKPOINT_DIR}/unet_original_best.pth'  # Trained with original HR images
 
 # Inference/output paths
@@ -39,7 +40,8 @@ RESTORED_DIR_IMPROVED = f'{OUTPUT_DIR}/restored_improved'  # Restored by improve
 PREDICTIONS_DIR = f'{OUTPUT_DIR}/predictions'  # Segmentation predictions (default)
 
 # Separate prediction directories for different models
-PREDICTIONS_DIR_RESTORED = f'{OUTPUT_DIR}/predictions_restored'  # U-Net with SRCNN restored images
+PREDICTIONS_DIR_RESTORED = f'{OUTPUT_DIR}/predictions_restored'  # U-Net with basic SRCNN restored images
+PREDICTIONS_DIR_IMPROVED = f'{OUTPUT_DIR}/predictions_improved'  # U-Net with improved SRCNN restored images
 PREDICTIONS_DIR_ORIGINAL = f'{OUTPUT_DIR}/predictions_original'  # U-Net with original HR images
 
 # ==================== Preprocessing ====================
