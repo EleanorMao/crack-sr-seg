@@ -6,29 +6,31 @@ import numpy as np
 from tqdm import tqdm
 
 from config import (
-    DEVICE, UNET_CHECKPOINT, UNET_CHECKPOINT_RESTORED, UNET_CHECKPOINT_ORIGINAL,
-    PREDICTIONS_DIR, PREDICTIONS_DIR_RESTORED, PREDICTIONS_DIR_ORIGINAL,
-    HR_IMAGE_DIR, RESTORED_DIR, ENHANCED_MASK_DIR, UNetConfig
+    DEVICE, UNET_CHECKPOINT, UNET_CHECKPOINT_RESTORED, UNET_CHECKPOINT_ORIGINAL, UNET_CHECKPOINT_IMPROVED,
+    PREDICTIONS_DIR, PREDICTIONS_DIR_RESTORED, PREDICTIONS_DIR_ORIGINAL, PREDICTIONS_DIR_IMPROVED,
+    HR_IMAGE_DIR, RESTORED_DIR, RESTORED_DIR_IMPROVED, ENHANCED_MASK_DIR, UNetConfig
 )
 from unet.model import (
     UNet, compute_iou, compute_dice_coeff, compute_pixel_accuracy
 )
-from unet.dataset import get_unet_test_loader, UNetDataset
+from unet.dataset import UNetDataset
 
 
 class UNetTester:
     """U-Net Tester"""
 
-    def __init__(self, checkpoint_path=None, device=None, use_restored=True):
+    def __init__(self, checkpoint_path=None, device=None, input_mode='restored'):
         self.device = device if device else DEVICE
-        self.use_restored = use_restored
+        self.input_mode = input_mode
         print(f"Using device: {self.device}")
 
-        # Select default checkpoint based on use_restored
+        # Select default checkpoint based on input_mode
         if checkpoint_path is None:
-            if use_restored:
+            if input_mode == 'improved':
+                checkpoint_path = UNET_CHECKPOINT_IMPROVED
+            elif input_mode == 'restored':
                 checkpoint_path = UNET_CHECKPOINT_RESTORED
-            else:
+            else:  # original
                 checkpoint_path = UNET_CHECKPOINT_ORIGINAL
 
         self.model = UNet(
@@ -81,29 +83,35 @@ class UNetTester:
         return binary_mask
 
     def test(self, split='test', save_results=True, output_dir=None,
-             use_restored=True, threshold=0.5):
+             input_mode=None, threshold=0.5):
         """
         Test model on a dataset split.
         Args:
             split: Test split ('test', 'val', 'train')
             save_results: Whether to save predictions
             output_dir: Output directory
-            use_restored: Whether to use restored images
+            input_mode: 'original', 'restored', or 'improved'
             threshold: Binarization threshold
         Returns:
-            metrics: Dict with evaluation metrics
+            metrics: dict with evaluation metrics
         """
-        # Select default output directory based on use_restored
+        # Use instance input_mode if not specified
+        if input_mode is None:
+            input_mode = self.input_mode
+
+        # Select default output directory based on input_mode
         if output_dir is None:
-            if use_restored:
+            if input_mode == 'improved':
+                output_dir = PREDICTIONS_DIR_IMPROVED
+            elif input_mode == 'restored':
                 output_dir = PREDICTIONS_DIR_RESTORED
-            else:
+            else:  # original
                 output_dir = PREDICTIONS_DIR_ORIGINAL
 
         if save_results:
             os.makedirs(output_dir, exist_ok=True)
 
-        test_dataset = UNetDataset(split=split, use_restored=use_restored)
+        test_dataset = UNetDataset(split=split, input_mode=input_mode)
 
         total_iou = 0.0
         total_dice = 0.0
@@ -111,6 +119,7 @@ class UNetTester:
         results = []
 
         print(f"\nTesting {split} dataset ({len(test_dataset)} images)")
+        print(f"Input mode: {input_mode}")
 
         for i in tqdm(range(len(test_dataset)), desc="Testing"):
             img, mask_gt, filename = test_dataset[i]
@@ -208,9 +217,9 @@ class UNetTester:
         print(f"Prediction complete, saved to: {output_dir}")
 
 
-def test_unet(split='test', save_results=True, use_restored=True, device=None):
-    tester = UNetTester(device=device)
-    return tester.test(split=split, save_results=save_results, use_restored=use_restored)
+def test_unet(split='test', save_results=True, input_mode='restored', device=None):
+    tester = UNetTester(device=device, input_mode=input_mode)
+    return tester.test(split=split, save_results=save_results, input_mode=input_mode)
 
 
 if __name__ == '__main__':
@@ -227,13 +236,14 @@ if __name__ == '__main__':
     parser.add_argument('--output-dir', type=str, default=None,
                         help='Output directory')
     parser.add_argument('--no-save', action='store_true', help='Do not save results')
-    parser.add_argument('--use-original', action='store_true',
-                        help='Use original images instead of restored')
+    parser.add_argument('--input-mode', type=str, default='restored',
+                        choices=['original', 'restored', 'improved'],
+                        help='Input mode: original (HR), restored (basic SRCNN), improved (improved SRCNN)')
     parser.add_argument('--threshold', type=float, default=0.5, help='Binarization threshold')
 
     args = parser.parse_args()
 
-    tester = UNetTester(checkpoint_path=args.checkpoint, device=args.device)
+    tester = UNetTester(checkpoint_path=args.checkpoint, device=args.device, input_mode=args.input_mode)
 
     if args.input_dir:
         output_dir = args.output_dir or PREDICTIONS_DIR
@@ -244,6 +254,6 @@ if __name__ == '__main__':
             split=args.split,
             save_results=not args.no_save,
             output_dir=output_dir,
-            use_restored=not args.use_original,
+            input_mode=args.input_mode,
             threshold=args.threshold
         )

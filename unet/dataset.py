@@ -125,13 +125,14 @@ class UNetDataset(Dataset):
 class UNetTestDataset(Dataset):
     """U-Net Test Dataset"""
 
-    def __init__(self, split='test', use_restored=True, input_dir=None):
+    def __init__(self, split='test', input_mode='restored', input_dir=None):
         if input_dir is not None:
             self.input_dir = input_dir
-        elif use_restored:
-            # Use split-specific restored directory to avoid data leakage
+        elif input_mode == 'improved':
+            self.input_dir = os.path.join(RESTORED_DIR_IMPROVED, split)
+        elif input_mode == 'restored':
             self.input_dir = os.path.join(RESTORED_DIR, split)
-        else:
+        else:  # original
             self.input_dir = os.path.join(HR_IMAGE_DIR, split)
 
         if not os.path.exists(self.input_dir):
@@ -192,12 +193,12 @@ def get_unet_loaders(batch_size=None, num_workers=None, input_mode='restored'):
     return train_loader, val_loader
 
 
-def get_unet_test_loader(split='test', use_restored=True, batch_size=None):
+def get_unet_test_loader(split='test', input_mode='restored', batch_size=None):
     """Get test data loader"""
     if batch_size is None:
         batch_size = 1
 
-    test_dataset = UNetTestDataset(split=split, use_restored=use_restored)
+    test_dataset = UNetTestDataset(split=split, input_mode=input_mode)
 
     test_loader = DataLoader(
         test_dataset,
@@ -211,7 +212,7 @@ def get_unet_test_loader(split='test', use_restored=True, batch_size=None):
 
 
 if __name__ == '__main__':
-    train_loader, val_loader = get_unet_loaders(batch_size=4, use_restored=False)
+    train_loader, val_loader = get_unet_loaders(batch_size=4, input_mode='original')
 
     for img, mask, name in train_loader:
         print(f"Image shape: {img.shape}")

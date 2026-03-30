@@ -128,10 +128,12 @@ def step_test_unet(args):
     print("=" * 50)
 
     # Determine input mode from arguments
-    if hasattr(args, 'input_mode'):
+    if hasattr(args, 'input_mode') and args.input_mode:
         input_mode = args.input_mode
-    elif args.use_original:
+    elif hasattr(args, 'use_original') and args.use_original:
         input_mode = 'original'
+    elif hasattr(args, 'use_improved') and args.use_improved:
+        input_mode = 'improved'
     else:
         input_mode = 'restored'
 
@@ -232,6 +234,8 @@ Usage Examples:
                         help='Input mode: original (HR), restored (basic SRCNN), improved (improved SRCNN)')
     parser.add_argument('--use-original', action='store_true',
                         help='Shortcut for --input-mode original (for baseline comparison)')
+    parser.add_argument('--use-restored', action='store_true',
+                        help='Shortcut for --input-mode restored (basic SRCNN)')
     parser.add_argument('--use-improved', action='store_true',
                         help='Shortcut for --input-mode improved')
     parser.add_argument('--resume-unet', type=str, default=None,
@@ -249,6 +253,8 @@ Usage Examples:
     # Handle shortcut arguments for input_mode
     if args.use_original:
         args.input_mode = 'original'
+    elif args.use_restored:
+        args.input_mode = 'restored'
     elif args.use_improved:
         args.input_mode = 'improved'
     # else: use the value from --input-mode (default: 'restored')
