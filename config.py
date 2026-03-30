@@ -35,7 +35,11 @@ UNET_CHECKPOINT_ORIGINAL = f'{CHECKPOINT_DIR}/unet_original_best.pth'  # Trained
 # Inference/output paths
 OUTPUT_DIR = 'outputs'
 RESTORED_DIR = f'{OUTPUT_DIR}/restored'  # Restored images
-PREDICTIONS_DIR = f'{OUTPUT_DIR}/predictions'  # Segmentation predictions
+PREDICTIONS_DIR = f'{OUTPUT_DIR}/predictions'  # Segmentation predictions (default)
+
+# Separate prediction directories for different models
+PREDICTIONS_DIR_RESTORED = f'{OUTPUT_DIR}/predictions_restored'  # U-Net with SRCNN restored images
+PREDICTIONS_DIR_ORIGINAL = f'{OUTPUT_DIR}/predictions_original'  # U-Net with original HR images
 
 # ==================== Preprocessing ====================
 class PreprocessConfig:

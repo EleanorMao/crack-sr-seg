@@ -7,7 +7,8 @@ from tqdm import tqdm
 
 from config import (
     DEVICE, UNET_CHECKPOINT, UNET_CHECKPOINT_RESTORED, UNET_CHECKPOINT_ORIGINAL,
-    PREDICTIONS_DIR, HR_IMAGE_DIR, RESTORED_DIR, ENHANCED_MASK_DIR, UNetConfig
+    PREDICTIONS_DIR, PREDICTIONS_DIR_RESTORED, PREDICTIONS_DIR_ORIGINAL,
+    HR_IMAGE_DIR, RESTORED_DIR, ENHANCED_MASK_DIR, UNetConfig
 )
 from unet.model import (
     UNet, compute_iou, compute_dice_coeff, compute_pixel_accuracy
@@ -92,8 +93,12 @@ class UNetTester:
         Returns:
             metrics: Dict with evaluation metrics
         """
+        # Select default output directory based on use_restored
         if output_dir is None:
-            output_dir = PREDICTIONS_DIR
+            if use_restored:
+                output_dir = PREDICTIONS_DIR_RESTORED
+            else:
+                output_dir = PREDICTIONS_DIR_ORIGINAL
 
         if save_results:
             os.makedirs(output_dir, exist_ok=True)
