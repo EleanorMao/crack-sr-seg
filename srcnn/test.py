@@ -6,7 +6,8 @@ import numpy as np
 from tqdm import tqdm
 
 from config import (
-    DEVICE, SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT, RESTORED_DIR,
+    DEVICE, SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT,
+    RESTORED_DIR, RESTORED_DIR_IMPROVED,
     LR_IMAGE_DIR, HR_IMAGE_DIR, SRCNNConfig
 )
 from srcnn.model import SRCNN, ImprovedSRCNN, compute_psnr, compute_ssim
@@ -89,8 +90,12 @@ class SRCNNTester:
             metrics: Dict with PSNR and SSIM
         """
         if output_dir is None:
-            # Use split-specific directory to avoid data leakage
-            output_dir = os.path.join(RESTORED_DIR, split)
+            # Select default output directory based on model type
+            if self.model_type == 'improved':
+                base_dir = RESTORED_DIR_IMPROVED
+            else:
+                base_dir = RESTORED_DIR
+            output_dir = os.path.join(base_dir, split)
 
         if save_results:
             os.makedirs(output_dir, exist_ok=True)

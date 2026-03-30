@@ -34,7 +34,8 @@ UNET_CHECKPOINT_ORIGINAL = f'{CHECKPOINT_DIR}/unet_original_best.pth'  # Trained
 
 # Inference/output paths
 OUTPUT_DIR = 'outputs'
-RESTORED_DIR = f'{OUTPUT_DIR}/restored'  # Restored images
+RESTORED_DIR = f'{OUTPUT_DIR}/restored'  # Restored images (default, for basic SRCNN)
+RESTORED_DIR_IMPROVED = f'{OUTPUT_DIR}/restored_improved'  # Restored by improved SRCNN
 PREDICTIONS_DIR = f'{OUTPUT_DIR}/predictions'  # Segmentation predictions (default)
 
 # Separate prediction directories for different models
