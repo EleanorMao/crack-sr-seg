@@ -81,7 +81,7 @@ python main.py --mode train-srcnn --model-type srcnn --epochs-srcnn 100
 # Improved SRCNN
 python main.py --mode train-srcnn --model-type improved --epochs-srcnn 100
 
-# Improved SRCNN (all 3x3 kernels) - Recommended
+# Improved SRCNN (all 3x3 kernels) - Best PSNR
 python main.py --mode train-srcnn --model-type improved_3x3 --epochs-srcnn 100
 
 # Improved SRCNN (with BatchNorm)
@@ -115,11 +115,11 @@ python main.py --mode train-unet --use-original --epochs-unet 100
 python main.py --mode train-unet --use-restored --epochs-unet 100
 # or: python main.py --mode train-unet --input-mode restored --epochs-unet 100
 
-# Improved SRCNN restored images
+# Improved SRCNN restored images - Best IoU (87.28%)
 python main.py --mode train-unet --use-improved --epochs-unet 100
 # or: python main.py --mode train-unet --input-mode improved --epochs-unet 100
 
-# Improved 3x3 SRCNN restored images - Recommended
+# Improved 3x3 SRCNN restored images - Best PSNR (30.81 dB)
 python main.py --mode train-unet --use-3x3 --epochs-unet 100
 # or: python main.py --mode train-unet --input-mode improved_3x3 --epochs-unet 100
 ```
@@ -140,14 +140,32 @@ python main.py --mode test-unet --use-improved --test-split test
 python main.py --mode test-unet --use-3x3 --test-split test
 ```
 
-## Model Comparison Table
+## Experimental Results
 
-| Method | SRCNN PSNR | U-Net IoU | U-Net Dice |
-|--------|------------|-----------|------------|
-| Original HR + U-Net | - | ~60% | ~73% |
-| Basic SRCNN + U-Net | ~27 dB | ~87% | ~92% |
-| Improved SRCNN + U-Net | ~30.16 dB | ? | ? |
-| Improved 3x3 SRCNN + U-Net | ~30.82 dB | ? | ? |
+### SRCNN Super-Resolution Performance
+
+| Model | PSNR (dB) | SSIM |
+|-------|-----------|------|
+| Basic SRCNN | 27.41 | 0.9076 |
+| Improved SRCNN (5-layer) | 30.09 | 0.9482 |
+| **Improved SRCNN (7-layer, all 3x3)** | **30.81** | **0.9545** |
+
+### U-Net Segmentation Performance
+
+| Method | IoU (%) | Dice (%) | Accuracy (%) |
+|--------|---------|----------|--------------|
+| Bilinear + U-Net | 36.96 | 49.41 | 95.70 |
+| Bicubic + U-Net | 36.96 | 49.41 | 95.70 |
+| Original HR + U-Net | 59.55 | 72.87 | 97.20 |
+| Basic SRCNN + U-Net | 86.84 | 92.47 | 99.44 |
+| **Improved SRCNN + U-Net** | **87.28** | **92.67** | **99.47** |
+| Improved 3x3 + U-Net | 87.21 | 92.61 | 99.47 |
+
+### Key Findings
+
+- **Best Segmentation**: Improved SRCNN (5-layer) + U-Net achieves **87.28% IoU**
+- **Learning-based SR >> Traditional Interpolation**: +135.9% improvement over Bilinear (36.96% → 87.28%)
+- **SR Quality ≠ Downstream Performance**: 7-layer 3x3 has higher PSNR (30.81 dB) but slightly lower IoU (87.21%)
 
 ## Command Line Arguments
 
