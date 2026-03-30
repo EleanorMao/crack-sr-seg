@@ -98,16 +98,17 @@ def step_train_unet(args):
     print("Step 4: U-Net Training")
     print("=" * 50)
 
+    # --use-original takes priority (for baseline comparison)
+    use_restored = not args.use_original
+
     trainer = UNetTrainer(
         device=args.device,
-        pos_weight=args.pos_weight
+        pos_weight=args.pos_weight,
+        use_restored=use_restored
     )
 
     if args.resume_unet:
         trainer.load_checkpoint(args.resume_unet)
-
-    # --use-original takes priority (for baseline comparison)
-    use_restored = not args.use_original
 
     trainer.train(
         num_epochs=args.epochs_unet,
