@@ -32,6 +32,7 @@ crack-sr-seg/
 ├── outputs/               # Output results
 │   ├── restored/                        # Basic SRCNN restored images
 │   ├── restored_improved/               # Improved SRCNN restored images
+│   ├── restored_improved_bn/            # Improved SRCNN (BatchNorm) restored images
 │   ├── restored_improved_3x3/           # Improved 3x3 SRCNN restored images
 │   ├── predictions_original/            # U-Net predictions (original HR)
 │   ├── predictions_restored/            # U-Net predictions (basic SRCNN)
@@ -95,6 +96,9 @@ python main.py --mode test-srcnn --model-type srcnn --test-split all
 
 # Improved SRCNN -> outputs/restored_improved/
 python main.py --mode test-srcnn --model-type improved --test-split all
+
+# Improved SRCNN (BatchNorm) -> outputs/restored_improved_bn/
+python main.py --mode test-srcnn --model-type improved_bn --test-split all
 
 # Improved 3x3 SRCNN -> outputs/restored_improved_3x3/
 python main.py --mode test-srcnn --model-type improved_3x3 --test-split all

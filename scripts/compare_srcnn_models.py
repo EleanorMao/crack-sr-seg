@@ -1,13 +1,14 @@
 """
-Compare SRCNN vs ImprovedSRCNN
+Compare all SRCNN variants
 
 This script:
-1. Tests both SRCNN models on test set (PSNR/SSIM)
+1. Tests all SRCNN models on test set (PSNR/SSIM)
 2. Trains U-Net with restored images from each model
 3. Compares final segmentation performance (IoU/Dice)
 
 Usage:
     python scripts/compare_srcnn_models.py --device cuda
+    python scripts/compare_srcnn_models.py --models srcnn improved improved_3x3
 """
 import os
 import sys
@@ -24,30 +25,59 @@ from torch.utils.data import DataLoader
 from config import (
     DEVICE, CHECKPOINT_DIR,
     SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT,
-    RESTORED_DIR, LR_IMAGE_DIR, HR_IMAGE_DIR, ENHANCED_MASK_DIR,
+    IMPROVED_SRCNN_BN_CHECKPOINT, IMPROVED_SRCNN_ALL3X3_CHECKPOINT,
+    RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_BN, RESTORED_DIR_IMPROVED_3X3,
+    LR_IMAGE_DIR, HR_IMAGE_DIR, ENHANCED_MASK_DIR,
     SRCNNConfig, UNetConfig
 )
-from srcnn.model import SRCNN, ImprovedSRCNN, compute_psnr, compute_ssim
+from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, compute_psnr, compute_ssim
 from srcnn.dataset import get_test_loader
 from unet.model import UNet, CombinedLoss, compute_iou, compute_dice_coeff
 from unet.dataset import get_unet_loaders, UNetDataset
+
+
+# 模型配置映射
+MODEL_CONFIGS = {
+    'srcnn': {
+        'class': SRCNN,
+        'checkpoint': SRCNN_CHECKPOINT,
+        'output_dir': RESTORED_DIR,
+        'name': 'Basic SRCNN'
+    },
+    'improved': {
+        'class': ImprovedSRCNN,
+        'checkpoint': IMPROVED_SRCNN_CHECKPOINT,
+        'output_dir': RESTORED_DIR_IMPROVED,
+        'name': 'Improved SRCNN (9x9+3x3+5x5)'
+    },
+    'improved_bn': {
+        'class': ImprovedSRCNN_BN,
+        'checkpoint': IMPROVED_SRCNN_BN_CHECKPOINT,
+        'output_dir': RESTORED_DIR_IMPROVED_BN,
+        'name': 'Improved SRCNN + BatchNorm'
+    },
+    'improved_3x3': {
+        'class': ImprovedSRCNN_All3x3,
+        'checkpoint': IMPROVED_SRCNN_ALL3X3_CHECKPOINT,
+        'output_dir': RESTORED_DIR_IMPROVED_3X3,
+        'name': 'Improved SRCNN (all 3x3)'
+    }
+}
 
 
 def test_srcnn_model(model_type, checkpoint_path, device):
     """Test SRCNN model and return PSNR/SSIM metrics"""
     print(f"\nTesting {model_type} SRCNN...")
 
-    # Load model
-    if model_type == 'improved':
-        model = ImprovedSRCNN(
-            num_channels=SRCNNConfig.NUM_CHANNELS,
-            num_features=SRCNNConfig.NUM_FEATURES
-        )
-    else:
-        model = SRCNN(
-            num_channels=SRCNNConfig.NUM_CHANNELS,
-            num_features=SRCNNConfig.NUM_FEATURES
-        )
+    # 获取模型配置
+    if model_type not in MODEL_CONFIGS:
+        raise ValueError(f"Unknown model type: {model_type}")
+
+    config = MODEL_CONFIGS[model_type]
+    model = config['class'](
+        num_channels=SRCNNConfig.NUM_CHANNELS,
+        num_features=SRCNNConfig.NUM_FEATURES
+    )
 
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -90,7 +120,9 @@ def restore_and_save(model, model_type, device):
     import numpy as np
     from tqdm import tqdm
 
-    output_dir = os.path.join(RESTORED_DIR, model_type, 'test')
+    # 使用模型配置中的输出目录
+    config = MODEL_CONFIGS[model_type]
+    output_dir = os.path.join(config['output_dir'], 'test')
     os.makedirs(output_dir, exist_ok=True)
 
     test_loader = get_test_loader(split='test')
@@ -223,19 +255,24 @@ def train_unet_with_restored(restored_dir, model_name, device, epochs=50, pos_we
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Compare SRCNN vs ImprovedSRCNN')
+    parser = argparse.ArgumentParser(description='Compare all SRCNN variants')
     parser.add_argument('--device', type=str, default=None, choices=['cuda', 'cpu'])
     parser.add_argument('--epochs', type=int, default=50, help='U-Net training epochs')
     parser.add_argument('--pos-weight', type=float, default=5.0)
     parser.add_argument('--skip-train', action='store_true', help='Skip U-Net training, only test SRCNN')
+    parser.add_argument('--models', type=str, nargs='+',
+                        default=['srcnn', 'improved', 'improved_3x3'],
+                        choices=['srcnn', 'improved', 'improved_bn', 'improved_3x3'],
+                        help='Models to compare')
 
     args = parser.parse_args()
     device = args.device if args.device else DEVICE
 
     print("=" * 60)
-    print("SRCNN vs ImprovedSRCNN Comparison")
+    print("SRCNN Variants Comparison")
     print("=" * 60)
     print(f"Device: {device}")
+    print(f"Models: {args.models}")
     print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     results = {
@@ -243,10 +280,9 @@ def main():
         'config': {
             'epochs': args.epochs,
             'pos_weight': args.pos_weight,
-            'device': device
-        },
-        'srcnn': {},
-        'improved_srcnn': {}
+            'device': device,
+            'models': args.models
+        }
     }
 
     # ==================== Test SRCNN Models ====================
@@ -254,37 +290,30 @@ def main():
     print("Part 1: Testing SRCNN Models (Restoration Quality)")
     print("=" * 60)
 
-    # Check if checkpoints exist
-    if not os.path.exists(SRCNN_CHECKPOINT):
-        print(f"Error: SRCNN checkpoint not found: {SRCNN_CHECKPOINT}")
-        print("Please train basic SRCNN first:")
-        print("  python main.py --mode train-srcnn --model-type srcnn --epochs-srcnn 100")
-        return
+    models = {}
+    restoration_metrics = {}
 
-    if not os.path.exists(IMPROVED_SRCNN_CHECKPOINT):
-        print(f"Error: ImprovedSRCNN checkpoint not found: {IMPROVED_SRCNN_CHECKPOINT}")
-        print("Please train improved SRCNN first:")
-        print("  python main.py --mode train-srcnn --model-type improved --epochs-srcnn 100")
-        return
+    for model_type in args.models:
+        config = MODEL_CONFIGS[model_type]
+        checkpoint_path = config['checkpoint']
 
-    # Test basic SRCNN
-    model_srcnn, metrics_srcnn = test_srcnn_model('basic', SRCNN_CHECKPOINT, device)
-    results['srcnn']['restoration'] = metrics_srcnn
+        if not os.path.exists(checkpoint_path):
+            print(f"[SKIP] {config['name']}: checkpoint not found at {checkpoint_path}")
+            continue
 
-    # Test improved SRCNN
-    model_improved, metrics_improved = test_srcnn_model('improved', IMPROVED_SRCNN_CHECKPOINT, device)
-    results['improved_srcnn']['restoration'] = metrics_improved
+        model, metrics = test_srcnn_model(model_type, checkpoint_path, device)
+        models[model_type] = model
+        restoration_metrics[model_type] = metrics
+        results[model_type] = {'restoration': metrics}
 
     # Compare restoration quality
-    print("\n" + "-" * 40)
+    print("\n" + "-" * 50)
     print("Restoration Quality Comparison:")
-    print("-" * 40)
-    print(f"{'Model':<20} {'PSNR (dB)':>12} {'SSIM':>12}")
-    print(f"{'SRCNN':<20} {metrics_srcnn['psnr']:>12.4f} {metrics_srcnn['ssim']:>12.4f}")
-    print(f"{'ImprovedSRCNN':<20} {metrics_improved['psnr']:>12.4f} {metrics_improved['ssim']:>12.4f}")
-
-    psnr_improve = metrics_improved['psnr'] - metrics_srcnn['psnr']
-    ssim_improve = metrics_improved['ssim'] - metrics_srcnn['ssim']
+    print("-" * 50)
+    print(f"{'Model':<30} {'PSNR (dB)':>12} {'SSIM':>12}")
+    for model_type, metrics in restoration_metrics.items():
+        name = MODEL_CONFIGS[model_type]['name']
+        print(f"{name:<30} {metrics['psnr']:>12.4f} {metrics['ssim']:>12.4f}")
     print(f"\nImprovement: PSNR {psnr_improve:+.4f} dB, SSIM {ssim_improve:+.4f}")
 
     if args.skip_train:
@@ -298,29 +327,21 @@ def main():
     print("Part 2: Training U-Net with Restored Images")
     print("=" * 60)
 
-    # Restore images for both models
-    restored_dir_srcnn = restore_and_save(model_srcnn, 'srcnn', device)
-    restored_dir_improved = restore_and_save(model_improved, 'improved', device)
+    segmentation_metrics = {}
 
-    # Train U-Net with basic SRCNN restored images
-    print("\n" + "-" * 40)
-    print("Training U-Net with basic SRCNN restored images...")
-    print("-" * 40)
-    metrics_unet_srcnn = train_unet_with_restored(
-        restored_dir_srcnn, 'basic SRCNN', device,
-        epochs=args.epochs, pos_weight=args.pos_weight
-    )
-    results['srcnn']['segmentation'] = metrics_unet_srcnn
+    for model_type, model in models.items():
+        restored_dir = restore_and_save(model, model_type, device)
 
-    # Train U-Net with improved SRCNN restored images
-    print("\n" + "-" * 40)
-    print("Training U-Net with improved SRCNN restored images...")
-    print("-" * 40)
-    metrics_unet_improved = train_unet_with_restored(
-        restored_dir_improved, 'improved SRCNN', device,
-        epochs=args.epochs, pos_weight=args.pos_weight
-    )
-    results['improved_srcnn']['segmentation'] = metrics_unet_improved
+        print("\n" + "-" * 40)
+        print(f"Training U-Net with {MODEL_CONFIGS[model_type]['name']} restored images...")
+        print("-" * 40)
+
+        metrics = train_unet_with_restored(
+            restored_dir, MODEL_CONFIGS[model_type]['name'], device,
+            epochs=args.epochs, pos_weight=args.pos_weight
+        )
+        segmentation_metrics[model_type] = metrics
+        results[model_type]['segmentation'] = metrics
 
     # ==================== Final Summary ====================
     print("\n" + "=" * 60)
@@ -328,17 +349,26 @@ def main():
     print("=" * 60)
 
     print("\n1. Restoration Quality:")
-    print(f"   {'Model':<20} {'PSNR (dB)':>12} {'SSIM':>12}")
-    print(f"   {'SRCNN':<20} {metrics_srcnn['psnr']:>12.4f} {metrics_srcnn['ssim']:>12.4f}")
-    print(f"   {'ImprovedSRCNN':<20} {metrics_improved['psnr']:>12.4f} {metrics_improved['ssim']:>12.4f}")
+    print(f"   {'Model':<30} {'PSNR (dB)':>12} {'SSIM':>12}")
+    for model_type, metrics in restoration_metrics.items():
+        name = MODEL_CONFIGS[model_type]['name']
+        print(f"   {name:<30} {metrics['psnr']:>12.4f} {metrics['ssim']:>12.4f}")
 
     print("\n2. Segmentation Performance:")
-    print(f"   {'Model':<20} {'IoU':>12} {'Dice':>12}")
-    print(f"   {'SRCNN + U-Net':<20} {metrics_unet_srcnn['iou']:>12.4f} {metrics_unet_srcnn['dice']:>12.4f}")
-    print(f"   {'ImprovedSRCNN + U-Net':<20} {metrics_unet_improved['iou']:>12.4f} {metrics_unet_improved['dice']:>12.4f}")
+    print(f"   {'Model':<30} {'IoU':>12} {'Dice':>12}")
+    for model_type, metrics in segmentation_metrics.items():
+        name = MODEL_CONFIGS[model_type]['name']
+        print(f"   {name + ' + U-Net':<30} {metrics['iou']:>12.4f} {metrics['dice']:>12.4f}")
 
-    iou_improve = ((metrics_unet_improved['iou'] - metrics_unet_srcnn['iou']) / metrics_unet_srcnn['iou']) * 100
-    print(f"\n   IoU Improvement: {iou_improve:+.2f}%")
+    # Calculate improvement
+    if len(segmentation_metrics) > 1:
+        baseline_type = args.models[0]
+        baseline_iou = segmentation_metrics[baseline_type]['iou']
+        print(f"\n3. Improvement over {MODEL_CONFIGS[baseline_type]['name']}:")
+        for model_type, metrics in segmentation_metrics.items():
+            if model_type != baseline_type:
+                iou_improve = ((metrics['iou'] - baseline_iou) / baseline_iou) * 100
+                print(f"   {MODEL_CONFIGS[model_type]['name']}: IoU {iou_improve:+.2f}%")
 
     # Save results
     output_path = 'results/srcnn_comparison.json'

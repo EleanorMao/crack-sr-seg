@@ -14,9 +14,10 @@ from tqdm import tqdm
 
 from config import (
     CHECKPOINT_DIR, LR_IMAGE_DIR, HR_IMAGE_DIR, ENHANCED_MASK_DIR,
-    RESTORED_DIR, DEVICE, SRCNNConfig, UNetConfig
+    RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_BN, RESTORED_DIR_IMPROVED_3X3,
+    DEVICE, SRCNNConfig, UNetConfig
 )
-from srcnn.model import SRCNN, ImprovedSRCNN, compute_psnr, compute_ssim
+from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, compute_psnr, compute_ssim
 from unet.model import UNet, CombinedLoss, compute_iou, compute_dice_coeff
 
 

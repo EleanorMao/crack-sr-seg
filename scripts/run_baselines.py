@@ -13,7 +13,9 @@ from tqdm import tqdm
 
 from config import (
     LR_IMAGE_DIR, HR_IMAGE_DIR, ENHANCED_MASK_DIR,
-    RESTORED_DIR, PREDICTIONS_DIR, DEVICE
+    RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_3X3,
+    PREDICTIONS_DIR, PREDICTIONS_DIR_IMPROVED, PREDICTIONS_DIR_IMPROVED_3X3,
+    DEVICE
 )
 from unet.model import UNet, compute_iou, compute_dice_coeff, compute_pixel_accuracy
 
