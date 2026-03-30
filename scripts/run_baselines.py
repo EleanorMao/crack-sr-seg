@@ -44,13 +44,14 @@ class BaselineTester:
         print(f"Loaded U-Net from: {unet_checkpoint}")
 
     def predict(self, img):
-        """Predict mask for an image"""
+        """Predict mask for an image (returns logits, not sigmoid)"""
         rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img_tensor = torch.from_numpy(rgb_img.astype(np.float32) / 255.0)
         img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0).to(self.device)
 
         with torch.no_grad():
-            output = torch.sigmoid(self.model(img_tensor))
+            output = self.model(img_tensor)
+            # Don't apply sigmoid here - compute_iou will do it
 
         return output.squeeze(0).squeeze(0).cpu().numpy()
 
