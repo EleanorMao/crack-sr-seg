@@ -7,38 +7,60 @@ from tqdm import tqdm
 
 from config import (
     DEVICE, SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT,
-    RESTORED_DIR, RESTORED_DIR_IMPROVED,
+    IMPROVED_SRCNN_BN_CHECKPOINT, IMPROVED_SRCNN_ALL3X3_CHECKPOINT,
+    RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_3X3,
     LR_IMAGE_DIR, HR_IMAGE_DIR, SRCNNConfig
 )
-from srcnn.model import SRCNN, ImprovedSRCNN, compute_psnr, compute_ssim
+from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, compute_psnr, compute_ssim
 from srcnn.dataset import get_test_loader
 
 
 class SRCNNTester:
     """SRCNN Tester"""
 
+    # 模型类型映射
+    MODEL_TYPES = {
+        'srcnn': SRCNN,
+        'improved': ImprovedSRCNN,
+        'improved_bn': ImprovedSRCNN_BN,
+        'improved_3x3': ImprovedSRCNN_All3x3,
+    }
+
+    # checkpoint路径映射
+    CHECKPOINT_PATHS = {
+        'srcnn': SRCNN_CHECKPOINT,
+        'improved': IMPROVED_SRCNN_CHECKPOINT,
+        'improved_bn': IMPROVED_SRCNN_BN_CHECKPOINT,
+        'improved_3x3': IMPROVED_SRCNN_ALL3X3_CHECKPOINT,
+    }
+
+    # 输出目录映射
+    OUTPUT_DIRS = {
+        'srcnn': RESTORED_DIR,
+        'improved': RESTORED_DIR_IMPROVED,
+        'improved_bn': RESTORED_DIR_IMPROVED,  # 暂时复用
+        'improved_3x3': RESTORED_DIR_IMPROVED_3X3,
+    }
+
     def __init__(self, model_type='srcnn', checkpoint_path=None, device=None):
         self.device = device if device else DEVICE
         self.model_type = model_type
         print(f"Using device: {self.device}")
 
-        # 根据 model_type 选择默认 checkpoint 路径
-        if checkpoint_path is None:
-            if model_type == 'improved':
-                checkpoint_path = IMPROVED_SRCNN_CHECKPOINT
-            else:
-                checkpoint_path = SRCNN_CHECKPOINT
+        # 验证模型类型
+        if model_type not in self.MODEL_TYPES:
+            raise ValueError(f"Unknown model_type: {model_type}. Valid options: {list(self.MODEL_TYPES.keys())}")
 
-        if model_type == 'improved':
-            self.model = ImprovedSRCNN(
-                num_channels=SRCNNConfig.NUM_CHANNELS,
-                num_features=SRCNNConfig.NUM_FEATURES
-            ).to(self.device)
-        else:
-            self.model = SRCNN(
-                num_channels=SRCNNConfig.NUM_CHANNELS,
-                num_features=SRCNNConfig.NUM_FEATURES
-            ).to(self.device)
+        # 选择 checkpoint 路径
+        if checkpoint_path is None:
+            checkpoint_path = self.CHECKPOINT_PATHS[model_type]
+
+        # 创建模型
+        model_class = self.MODEL_TYPES[model_type]
+        self.model = model_class(
+            num_channels=SRCNNConfig.NUM_CHANNELS,
+            num_features=SRCNNConfig.NUM_FEATURES
+        ).to(self.device)
 
         self.checkpoint_path = checkpoint_path
         self.load_checkpoint()
@@ -91,10 +113,7 @@ class SRCNNTester:
         """
         if output_dir is None:
             # Select default output directory based on model type
-            if self.model_type == 'improved':
-                base_dir = RESTORED_DIR_IMPROVED
-            else:
-                base_dir = RESTORED_DIR
+            base_dir = self.OUTPUT_DIRS.get(self.model_type, RESTORED_DIR)
             output_dir = os.path.join(base_dir, split)
 
         if save_results:
@@ -185,7 +204,8 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Test SRCNN')
-    parser.add_argument('--model', type=str, default='srcnn', choices=['srcnn', 'improved'],
+    parser.add_argument('--model', type=str, default='srcnn',
+                        choices=['srcnn', 'improved', 'improved_bn', 'improved_3x3'],
                         help='Model type')
     parser.add_argument('--checkpoint', type=str, default=None, help='Checkpoint path')
     parser.add_argument('--split', type=str, default='test', choices=['test', 'val', 'train'],
