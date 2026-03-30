@@ -212,7 +212,7 @@ Usage Examples:
                         help='Dataset split to preprocess')
 
     parser.add_argument('--model-type', type=str, default='srcnn',
-                        choices=['srcnn', 'improved'],
+                        choices=['srcnn', 'improved', 'improved_bn', 'improved_3x3'],
                         help='SRCNN model type')
     parser.add_argument('--epochs-srcnn', type=int, default=100,
                         help='Number of epochs for SRCNN training')
