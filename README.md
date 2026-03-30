@@ -21,17 +21,22 @@ crack-sr-seg/
 │   ├── hr_images/        # High-quality images
 │   └── enhanced_masks/   # Enhanced masks
 ├── checkpoints/           # Model checkpoints
-│   ├── srcnn_best.pth              # Basic SRCNN
-│   ├── improved_srcnn_best.pth     # Improved SRCNN
-│   ├── unet_original_best.pth      # U-Net (original HR)
-│   ├── unet_restored_best.pth      # U-Net (basic SRCNN restored)
-│   └── unet_improved_best.pth      # U-Net (improved SRCNN restored)
+│   ├── srcnn_best.pth                    # Basic SRCNN
+│   ├── improved_srcnn_best.pth           # Improved SRCNN
+│   ├── improved_srcnn_all3x3_best.pth    # Improved SRCNN (all 3x3 kernels)
+│   ├── improved_srcnn_bn_best.pth        # Improved SRCNN (with BatchNorm)
+│   ├── unet_original_best.pth            # U-Net (original HR)
+│   ├── unet_restored_best.pth            # U-Net (basic SRCNN restored)
+│   ├── unet_improved_best.pth            # U-Net (improved SRCNN restored)
+│   └── unet_improved_3x3_best.pth        # U-Net (improved_3x3 SRCNN restored)
 ├── outputs/               # Output results
-│   ├── restored/                  # Basic SRCNN restored images
-│   ├── restored_improved/         # Improved SRCNN restored images
-│   ├── predictions_original/      # U-Net predictions (original HR)
-│   ├── predictions_restored/      # U-Net predictions (basic SRCNN)
-│   └── predictions_improved/      # U-Net predictions (improved SRCNN)
+│   ├── restored/                        # Basic SRCNN restored images
+│   ├── restored_improved/               # Improved SRCNN restored images
+│   ├── restored_improved_3x3/           # Improved 3x3 SRCNN restored images
+│   ├── predictions_original/            # U-Net predictions (original HR)
+│   ├── predictions_restored/            # U-Net predictions (basic SRCNN)
+│   ├── predictions_improved/            # U-Net predictions (improved SRCNN)
+│   └── predictions_improved_3x3/        # U-Net predictions (improved_3x3 SRCNN)
 ├── srcnn/                 # SRCNN module
 │   ├── model.py
 │   ├── dataset.py
@@ -74,6 +79,12 @@ python main.py --mode train-srcnn --model-type srcnn --epochs-srcnn 100
 
 # Improved SRCNN
 python main.py --mode train-srcnn --model-type improved --epochs-srcnn 100
+
+# Improved SRCNN (all 3x3 kernels) - Recommended
+python main.py --mode train-srcnn --model-type improved_3x3 --epochs-srcnn 100
+
+# Improved SRCNN (with BatchNorm)
+python main.py --mode train-srcnn --model-type improved_bn --epochs-srcnn 100
 ```
 
 #### 3. Test SRCNN (Generate Restored Images)
@@ -84,6 +95,9 @@ python main.py --mode test-srcnn --model-type srcnn --test-split all
 
 # Improved SRCNN -> outputs/restored_improved/
 python main.py --mode test-srcnn --model-type improved --test-split all
+
+# Improved 3x3 SRCNN -> outputs/restored_improved_3x3/
+python main.py --mode test-srcnn --model-type improved_3x3 --test-split all
 ```
 
 #### 4. Train U-Net
@@ -100,6 +114,10 @@ python main.py --mode train-unet --use-restored --epochs-unet 100
 # Improved SRCNN restored images
 python main.py --mode train-unet --use-improved --epochs-unet 100
 # or: python main.py --mode train-unet --input-mode improved --epochs-unet 100
+
+# Improved 3x3 SRCNN restored images - Recommended
+python main.py --mode train-unet --use-3x3 --epochs-unet 100
+# or: python main.py --mode train-unet --input-mode improved_3x3 --epochs-unet 100
 ```
 
 #### 5. Test U-Net
@@ -113,6 +131,9 @@ python main.py --mode test-unet --use-restored --test-split test
 
 # Improved SRCNN -> outputs/predictions_improved/
 python main.py --mode test-unet --use-improved --test-split test
+
+# Improved 3x3 SRCNN -> outputs/predictions_improved_3x3/
+python main.py --mode test-unet --use-3x3 --test-split test
 ```
 
 ## Model Comparison Table
@@ -121,18 +142,20 @@ python main.py --mode test-unet --use-improved --test-split test
 |--------|------------|-----------|------------|
 | Original HR + U-Net | - | ~60% | ~73% |
 | Basic SRCNN + U-Net | ~27 dB | ~87% | ~92% |
-| Improved SRCNN + U-Net | ~30 dB | ? | ? |
+| Improved SRCNN + U-Net | ~30.16 dB | ? | ? |
+| Improved 3x3 SRCNN + U-Net | ~30.82 dB | ? | ? |
 
 ## Command Line Arguments
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `--mode` | Run mode (preprocess/train-srcnn/test-srcnn/train-unet/test-unet/full) | full |
-| `--model-type` | SRCNN type (srcnn/improved) | srcnn |
-| `--input-mode` | U-Net input (original/restored/improved) | restored |
+| `--model-type` | SRCNN type (srcnn/improved/improved_bn/improved_3x3) | srcnn |
+| `--input-mode` | U-Net input (original/restored/improved/improved_3x3) | restored |
 | `--use-original` | Shortcut for `--input-mode original` | - |
 | `--use-restored` | Shortcut for `--input-mode restored` | - |
 | `--use-improved` | Shortcut for `--input-mode improved` | - |
+| `--use-3x3` | Shortcut for `--input-mode improved_3x3` | - |
 | `--epochs-srcnn` | SRCNN epochs | 100 |
 | `--epochs-unet` | U-Net epochs | 100 |
 | `--pos-weight` | Crack pixel weight | 5.0 |

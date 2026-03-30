@@ -99,9 +99,13 @@ def step_train_unet(args):
     print("=" * 50)
 
     # Determine input mode from arguments
-    if hasattr(args, 'input_mode'):
+    if hasattr(args, 'input_mode') and args.input_mode:
         input_mode = args.input_mode
-    elif args.use_original:
+    elif hasattr(args, 'use_3x3') and args.use_3x3:
+        input_mode = 'improved_3x3'
+    elif hasattr(args, 'use_improved') and args.use_improved:
+        input_mode = 'improved'
+    elif hasattr(args, 'use_original') and args.use_original:
         input_mode = 'original'
     else:
         input_mode = 'restored'
@@ -130,10 +134,12 @@ def step_test_unet(args):
     # Determine input mode from arguments
     if hasattr(args, 'input_mode') and args.input_mode:
         input_mode = args.input_mode
-    elif hasattr(args, 'use_original') and args.use_original:
-        input_mode = 'original'
+    elif hasattr(args, 'use_3x3') and args.use_3x3:
+        input_mode = 'improved_3x3'
     elif hasattr(args, 'use_improved') and args.use_improved:
         input_mode = 'improved'
+    elif hasattr(args, 'use_original') and args.use_original:
+        input_mode = 'original'
     else:
         input_mode = 'restored'
 
@@ -230,14 +236,16 @@ Usage Examples:
     parser.add_argument('--pos-weight', type=float, default=5.0,
                         help='Positive sample weight (crack pixel weight)')
     parser.add_argument('--input-mode', type=str, default='restored',
-                        choices=['original', 'restored', 'improved'],
-                        help='Input mode: original (HR), restored (basic SRCNN), improved (improved SRCNN)')
+                        choices=['original', 'restored', 'improved', 'improved_3x3'],
+                        help='Input mode: original (HR), restored (basic SRCNN), improved, improved_3x3')
     parser.add_argument('--use-original', action='store_true',
                         help='Shortcut for --input-mode original (for baseline comparison)')
     parser.add_argument('--use-restored', action='store_true',
                         help='Shortcut for --input-mode restored (basic SRCNN)')
     parser.add_argument('--use-improved', action='store_true',
                         help='Shortcut for --input-mode improved')
+    parser.add_argument('--use-3x3', action='store_true',
+                        help='Shortcut for --input-mode improved_3x3')
     parser.add_argument('--resume-unet', type=str, default=None,
                         help='Checkpoint path to resume U-Net training')
     parser.add_argument('--checkpoint-unet', type=str, default=None,
@@ -257,6 +265,8 @@ Usage Examples:
         args.input_mode = 'restored'
     elif args.use_improved:
         args.input_mode = 'improved'
+    elif args.use_3x3:
+        args.input_mode = 'improved_3x3'
     # else: use the value from --input-mode (default: 'restored')
 
     if args.mode == 'full':

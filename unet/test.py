@@ -6,9 +6,11 @@ import numpy as np
 from tqdm import tqdm
 
 from config import (
-    DEVICE, UNET_CHECKPOINT, UNET_CHECKPOINT_RESTORED, UNET_CHECKPOINT_ORIGINAL, UNET_CHECKPOINT_IMPROVED,
-    PREDICTIONS_DIR, PREDICTIONS_DIR_RESTORED, PREDICTIONS_DIR_ORIGINAL, PREDICTIONS_DIR_IMPROVED,
-    HR_IMAGE_DIR, RESTORED_DIR, RESTORED_DIR_IMPROVED, ENHANCED_MASK_DIR, UNetConfig
+    DEVICE, UNET_CHECKPOINT, UNET_CHECKPOINT_RESTORED, UNET_CHECKPOINT_ORIGINAL,
+    UNET_CHECKPOINT_IMPROVED, UNET_CHECKPOINT_IMPROVED_3X3,
+    PREDICTIONS_DIR, PREDICTIONS_DIR_RESTORED, PREDICTIONS_DIR_ORIGINAL,
+    PREDICTIONS_DIR_IMPROVED, PREDICTIONS_DIR_IMPROVED_3X3,
+    HR_IMAGE_DIR, RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_3X3, ENHANCED_MASK_DIR, UNetConfig
 )
 from unet.model import (
     UNet, compute_iou, compute_dice_coeff, compute_pixel_accuracy
@@ -26,7 +28,9 @@ class UNetTester:
 
         # Select default checkpoint based on input_mode
         if checkpoint_path is None:
-            if input_mode == 'improved':
+            if input_mode == 'improved_3x3':
+                checkpoint_path = UNET_CHECKPOINT_IMPROVED_3X3
+            elif input_mode == 'improved':
                 checkpoint_path = UNET_CHECKPOINT_IMPROVED
             elif input_mode == 'restored':
                 checkpoint_path = UNET_CHECKPOINT_RESTORED
@@ -101,7 +105,9 @@ class UNetTester:
 
         # Select default output directory based on input_mode
         if output_dir is None:
-            if input_mode == 'improved':
+            if input_mode == 'improved_3x3':
+                output_dir = PREDICTIONS_DIR_IMPROVED_3X3
+            elif input_mode == 'improved':
                 output_dir = PREDICTIONS_DIR_IMPROVED
             elif input_mode == 'restored':
                 output_dir = PREDICTIONS_DIR_RESTORED
@@ -237,8 +243,8 @@ if __name__ == '__main__':
                         help='Output directory')
     parser.add_argument('--no-save', action='store_true', help='Do not save results')
     parser.add_argument('--input-mode', type=str, default='restored',
-                        choices=['original', 'restored', 'improved'],
-                        help='Input mode: original (HR), restored (basic SRCNN), improved (improved SRCNN)')
+                        choices=['original', 'restored', 'improved', 'improved_3x3'],
+                        help='Input mode: original (HR), restored (basic SRCNN), improved, improved_3x3')
     parser.add_argument('--threshold', type=float, default=0.5, help='Binarization threshold')
 
     args = parser.parse_args()

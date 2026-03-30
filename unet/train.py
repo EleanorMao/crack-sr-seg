@@ -9,7 +9,7 @@ import numpy as np
 
 from config import (
     DEVICE, CHECKPOINT_DIR,
-    UNET_CHECKPOINT_RESTORED, UNET_CHECKPOINT_IMPROVED, UNET_CHECKPOINT_ORIGINAL,
+    UNET_CHECKPOINT_RESTORED, UNET_CHECKPOINT_IMPROVED, UNET_CHECKPOINT_IMPROVED_3X3, UNET_CHECKPOINT_ORIGINAL,
     UNetConfig
 )
 from unet.model import (
@@ -27,14 +27,17 @@ class UNetTrainer:
         Args:
             device: Device to use
             pos_weight: Positive class weight for loss
-            input_mode: 'original', 'restored', or 'improved'
+            input_mode: 'original', 'restored', 'improved', or 'improved_3x3'
         """
         self.device = device if device else DEVICE
         self.input_mode = input_mode
         print(f"Using device: {self.device}")
 
         # Select checkpoint path based on training mode
-        if input_mode == 'improved':
+        if input_mode == 'improved_3x3':
+            self.checkpoint_path = UNET_CHECKPOINT_IMPROVED_3X3
+            print(f"Training mode: Improved 3x3 SRCNN restored images")
+        elif input_mode == 'improved':
             self.checkpoint_path = UNET_CHECKPOINT_IMPROVED
             print(f"Training mode: Improved SRCNN restored images")
         elif input_mode == 'restored':
@@ -166,7 +169,9 @@ class UNetTrainer:
         }
 
         # Use mode-specific last checkpoint
-        if self.input_mode == 'improved':
+        if self.input_mode == 'improved_3x3':
+            last_path = os.path.join(CHECKPOINT_DIR, 'unet_improved_3x3_last.pth')
+        elif self.input_mode == 'improved':
             last_path = os.path.join(CHECKPOINT_DIR, 'unet_improved_last.pth')
         elif self.input_mode == 'restored':
             last_path = os.path.join(CHECKPOINT_DIR, 'unet_restored_last.pth')
@@ -275,8 +280,8 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=str, default=None, choices=['cuda', 'cpu'],
                         help='Compute device')
     parser.add_argument('--input-mode', type=str, default='restored',
-                        choices=['original', 'restored', 'improved'],
-                        help='Input mode: original (HR), restored (basic SRCNN), improved (improved SRCNN)')
+                        choices=['original', 'restored', 'improved', 'improved_3x3'],
+                        help='Input mode: original (HR), restored (basic SRCNN), improved, improved_3x3')
     parser.add_argument('--pos-weight', type=float, default=None,
                         help='Positive sample weight')
     parser.add_argument('--resume', type=str, default=None, help='Checkpoint path to resume')

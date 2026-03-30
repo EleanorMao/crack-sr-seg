@@ -7,7 +7,7 @@ import numpy as np
 import random
 
 from config import (
-    HR_IMAGE_DIR, RESTORED_DIR, RESTORED_DIR_IMPROVED, ENHANCED_MASK_DIR, UNetConfig, DEVICE
+    HR_IMAGE_DIR, RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_3X3, ENHANCED_MASK_DIR, UNetConfig, DEVICE
 )
 
 
@@ -19,7 +19,7 @@ class UNetDataset(Dataset):
         """
         Args:
             split: 'train', 'val', or 'test'
-            input_mode: 'original', 'restored', or 'improved'
+            input_mode: 'original', 'restored', 'improved', or 'improved_3x3'
             transform: Optional transforms
             input_dir: Override input directory
             mask_dir: Override mask directory
@@ -30,6 +30,10 @@ class UNetDataset(Dataset):
 
         if input_dir is not None:
             self.input_dir = input_dir
+        elif input_mode == 'improved_3x3':
+            self.input_dir = os.path.join(RESTORED_DIR_IMPROVED_3X3, split)
+            if not os.path.exists(self.input_dir):
+                print(f"Warning: Improved 3x3 restored directory not found {self.input_dir}")
         elif input_mode == 'improved':
             self.input_dir = os.path.join(RESTORED_DIR_IMPROVED, split)
             if not os.path.exists(self.input_dir):
@@ -128,6 +132,8 @@ class UNetTestDataset(Dataset):
     def __init__(self, split='test', input_mode='restored', input_dir=None):
         if input_dir is not None:
             self.input_dir = input_dir
+        elif input_mode == 'improved_3x3':
+            self.input_dir = os.path.join(RESTORED_DIR_IMPROVED_3X3, split)
         elif input_mode == 'improved':
             self.input_dir = os.path.join(RESTORED_DIR_IMPROVED, split)
         elif input_mode == 'restored':
