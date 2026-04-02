@@ -12,7 +12,11 @@ srcnn_results = {
         'PSNR': 27.41,
         'SSIM': 0.9076,
     },
-    'ImprovedSRCNN': {
+    'ImprovedSRCNN (with BN)': {
+        'PSNR': 24.10,
+        'SSIM': 0.8400,
+    },
+    'ImprovedSRCNN (no BN)': {
         'PSNR': 30.09,
         'SSIM': 0.9482,
     },
@@ -132,11 +136,11 @@ print("Generating SRCNN comparison chart...")
 print("=" * 70)
 
 srcnn_methods = list(srcnn_results.keys())
-srcnn_short_names = ['SRCNN', 'Improved', 'Improved 3x3']
+srcnn_short_names = ['SRCNN', 'Improved\n(with BN)', 'Improved\n(no BN)', 'Improved\n3x3']
 psnr_values = [srcnn_results[m]['PSNR'] for m in srcnn_methods]
 ssim_values = [srcnn_results[m]['SSIM'] * 100 for m in srcnn_methods]  # Scale for visibility
 
-fig, ax = plt.subplots(figsize=(10, 6))
+fig, ax = plt.subplots(figsize=(12, 6))
 x = np.arange(len(srcnn_methods))
 width = 0.35
 

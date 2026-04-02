@@ -40,3 +40,21 @@
 | [9] U-Net (MICCAI 2015) | [arXiv:1505.04597](https://arxiv.org/abs/1505.04597) |
 | [10] Yang et al. (CRACK500) | DOI: [10.1109/TITS.2019.2910595](https://doi.org/10.1109/TITS.2019.2910595) |
 | [11] Amhaz et al. (CFD) | DOI: [10.1109/TITS.2015.2477675](https://doi.org/10.1109/TITS.2015.2477675) |
+
+
+## 增加参考文献
+
+证明超分辨率与分割联合应用有效性的代表作：
+Kondo Y, Ukita N. Crack segmentation for low-resolution images using joint learning with super-resolution[C]//2021 17th International Conference on Machine Vision and Applications (MVA). IEEE, 2021: 1-6.
+
+ 解释为何在超分网络中去除BN层的理论支撑论文：
+Wang H, et al. Removing batch normalization boosts adversarial training[C]//International Conference on Machine Learning (ICML). PMLR, 2022: 22726-22745. (或者直接引用你已有的文献 EDSR，在正文中点出EDSR移除了BN层)
+
+ 一篇综述，探讨近期深度学习在路面病害中的应用，可放在引言：
+Zhang X, Wang H, Hsieh Y A, et al. Deep Learning for Crack Detection: A Review of Learning Paradigms, Generalizability, and Datasets[J]. arXiv preprint arXiv:2508.10256, 2025.
+
+ 专门探讨U-Net应用于路面裂缝分割的IEEE论文：
+Zou Q, Zhang Z, Li Q, et al. Automated pavement crack segmentation using U-Net-based convolutional neural network[J]. IEEE Access, 2020, 8: 114892-114899.
+
+ 探讨超分辨率指标(PSNR)与下游机器视觉任务(如分割)相关性的论文，支撑你的Discussion 5.3：
+Kim J, et al. Super-Resolution for Image Recognition[C]//Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). 2024: 30305.
