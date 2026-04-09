@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod +x /Users/molichashaobao/workspace/crack-sr-seg/scripts/run_baseline.sh)",
+      "Bash(wc:*)",
+      "WebSearch",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git cherry-pick:*)"
+    ]
+  }
+}
