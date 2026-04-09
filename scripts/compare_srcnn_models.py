@@ -26,11 +26,13 @@ from config import (
     DEVICE, CHECKPOINT_DIR,
     SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT,
     IMPROVED_SRCNN_BN_CHECKPOINT, IMPROVED_SRCNN_ALL3X3_CHECKPOINT,
+    IMPROVED_SRCNN_5L_RF15_CHECKPOINT,
     RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_BN, RESTORED_DIR_IMPROVED_3X3,
+    RESTORED_DIR_IMPROVED_5L_RF15,
     LR_IMAGE_DIR, HR_IMAGE_DIR, ENHANCED_MASK_DIR,
     SRCNNConfig, UNetConfig
 )
-from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, compute_psnr, compute_ssim
+from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, ImprovedSRCNN_5L_RF15, compute_psnr, compute_ssim
 from srcnn.dataset import get_test_loader
 from unet.model import UNet, CombinedLoss, compute_iou, compute_dice_coeff
 from unet.dataset import get_unet_loaders, UNetDataset
@@ -61,6 +63,12 @@ MODEL_CONFIGS = {
         'checkpoint': IMPROVED_SRCNN_ALL3X3_CHECKPOINT,
         'output_dir': RESTORED_DIR_IMPROVED_3X3,
         'name': 'Improved SRCNN (all 3x3)'
+    },
+    'improved_5l_rf15': {
+        'class': ImprovedSRCNN_5L_RF15,
+        'checkpoint': IMPROVED_SRCNN_5L_RF15_CHECKPOINT,
+        'output_dir': RESTORED_DIR_IMPROVED_5L_RF15,
+        'name': 'Improved SRCNN (5-layer RF=15)'
     }
 }
 
@@ -262,7 +270,7 @@ def main():
     parser.add_argument('--skip-train', action='store_true', help='Skip U-Net training, only test SRCNN')
     parser.add_argument('--models', type=str, nargs='+',
                         default=['srcnn', 'improved', 'improved_3x3'],
-                        choices=['srcnn', 'improved', 'improved_bn', 'improved_3x3'],
+                        choices=['srcnn', 'improved', 'improved_bn', 'improved_3x3', 'improved_5l_rf15'],
                         help='Models to compare')
 
     args = parser.parse_args()

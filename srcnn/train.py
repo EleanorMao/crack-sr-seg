@@ -8,8 +8,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 import numpy as np
 
-from config import DEVICE, CHECKPOINT_DIR, SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT, IMPROVED_SRCNN_BN_CHECKPOINT, IMPROVED_SRCNN_ALL3X3_CHECKPOINT, SRCNNConfig
-from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, compute_psnr, compute_ssim
+from config import DEVICE, CHECKPOINT_DIR, SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT, IMPROVED_SRCNN_BN_CHECKPOINT, IMPROVED_SRCNN_ALL3X3_CHECKPOINT, IMPROVED_SRCNN_5L_RF15_CHECKPOINT, SRCNNConfig
+from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, ImprovedSRCNN_5L_RF15, compute_psnr, compute_ssim
 from srcnn.dataset import get_srcnn_loaders
 
 
@@ -22,6 +22,7 @@ class SRCNNTrainer:
         'improved': (ImprovedSRCNN, 'Improved SRCNN'),
         'improved_bn': (ImprovedSRCNN_BN, 'Improved SRCNN with BatchNorm'),
         'improved_3x3': (ImprovedSRCNN_All3x3, 'Improved SRCNN all 3x3 kernels'),
+        'improved_5l_rf15': (ImprovedSRCNN_5L_RF15, 'Improved SRCNN 5-layer RF=15'),
     }
 
     # checkpoint路径映射
@@ -30,6 +31,7 @@ class SRCNNTrainer:
         'improved': IMPROVED_SRCNN_CHECKPOINT,
         'improved_bn': IMPROVED_SRCNN_BN_CHECKPOINT,
         'improved_3x3': IMPROVED_SRCNN_ALL3X3_CHECKPOINT,
+        'improved_5l_rf15': IMPROVED_SRCNN_5L_RF15_CHECKPOINT,
     }
 
     def __init__(self, model_type='srcnn', device=None):
@@ -214,8 +216,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Train SRCNN')
     parser.add_argument('--model', type=str, default='srcnn',
-                        choices=['srcnn', 'improved', 'improved_bn', 'improved_3x3'],
-                        help='Model type: srcnn, improved, improved_bn (with BatchNorm), improved_3x3 (all 3x3 kernels)')
+                        choices=['srcnn', 'improved', 'improved_bn', 'improved_3x3', 'improved_5l_rf15'],
+                        help='Model type: srcnn, improved, improved_bn, improved_3x3, improved_5l_rf15')
     parser.add_argument('--epochs', type=int, default=None, help='Number of epochs')
     parser.add_argument('--batch-size', type=int, default=None, help='Batch size')
     parser.add_argument('--device', type=str, default=None, choices=['cuda', 'cpu'],

@@ -9,7 +9,9 @@ import numpy as np
 
 from config import (
     DEVICE, CHECKPOINT_DIR,
-    UNET_CHECKPOINT_RESTORED, UNET_CHECKPOINT_IMPROVED, UNET_CHECKPOINT_IMPROVED_3X3, UNET_CHECKPOINT_ORIGINAL,
+    UNET_CHECKPOINT_RESTORED, UNET_CHECKPOINT_IMPROVED, UNET_CHECKPOINT_IMPROVED_3X3,
+    UNET_CHECKPOINT_IMPROVED_5L_RF15,
+    UNET_CHECKPOINT_ORIGINAL,
     UNetConfig
 )
 from unet.model import (
@@ -34,7 +36,10 @@ class UNetTrainer:
         print(f"Using device: {self.device}")
 
         # Select checkpoint path based on training mode
-        if input_mode == 'improved_3x3':
+        if input_mode == 'improved_5l_rf15':
+            self.checkpoint_path = UNET_CHECKPOINT_IMPROVED_5L_RF15
+            print(f"Training mode: Improved 5-layer RF15 SRCNN restored images")
+        elif input_mode == 'improved_3x3':
             self.checkpoint_path = UNET_CHECKPOINT_IMPROVED_3X3
             print(f"Training mode: Improved 3x3 SRCNN restored images")
         elif input_mode == 'improved':

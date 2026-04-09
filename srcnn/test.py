@@ -8,10 +8,12 @@ from tqdm import tqdm
 from config import (
     DEVICE, SRCNN_CHECKPOINT, IMPROVED_SRCNN_CHECKPOINT,
     IMPROVED_SRCNN_BN_CHECKPOINT, IMPROVED_SRCNN_ALL3X3_CHECKPOINT,
+    IMPROVED_SRCNN_5L_RF15_CHECKPOINT,
     RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_BN, RESTORED_DIR_IMPROVED_3X3,
+    RESTORED_DIR_IMPROVED_5L_RF15,
     LR_IMAGE_DIR, HR_IMAGE_DIR, SRCNNConfig
 )
-from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, compute_psnr, compute_ssim
+from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, ImprovedSRCNN_5L_RF15, compute_psnr, compute_ssim
 from srcnn.dataset import get_test_loader
 
 
@@ -24,6 +26,7 @@ class SRCNNTester:
         'improved': ImprovedSRCNN,
         'improved_bn': ImprovedSRCNN_BN,
         'improved_3x3': ImprovedSRCNN_All3x3,
+        'improved_5l_rf15': ImprovedSRCNN_5L_RF15,
     }
 
     # checkpoint路径映射
@@ -32,6 +35,7 @@ class SRCNNTester:
         'improved': IMPROVED_SRCNN_CHECKPOINT,
         'improved_bn': IMPROVED_SRCNN_BN_CHECKPOINT,
         'improved_3x3': IMPROVED_SRCNN_ALL3X3_CHECKPOINT,
+        'improved_5l_rf15': IMPROVED_SRCNN_5L_RF15_CHECKPOINT,
     }
 
     # 输出目录映射
@@ -40,6 +44,7 @@ class SRCNNTester:
         'improved': RESTORED_DIR_IMPROVED,
         'improved_bn': RESTORED_DIR_IMPROVED_BN,
         'improved_3x3': RESTORED_DIR_IMPROVED_3X3,
+        'improved_5l_rf15': RESTORED_DIR_IMPROVED_5L_RF15,
     }
 
     def __init__(self, model_type='srcnn', checkpoint_path=None, device=None):
@@ -205,7 +210,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Test SRCNN')
     parser.add_argument('--model', type=str, default='srcnn',
-                        choices=['srcnn', 'improved', 'improved_bn', 'improved_3x3'],
+                        choices=['srcnn', 'improved', 'improved_bn', 'improved_3x3', 'improved_5l_rf15'],
                         help='Model type')
     parser.add_argument('--checkpoint', type=str, default=None, help='Checkpoint path')
     parser.add_argument('--split', type=str, default='test', choices=['test', 'val', 'train'],

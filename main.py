@@ -212,7 +212,7 @@ Usage Examples:
                         help='Dataset split to preprocess')
 
     parser.add_argument('--model-type', type=str, default='srcnn',
-                        choices=['srcnn', 'improved', 'improved_bn', 'improved_3x3'],
+                        choices=['srcnn', 'improved', 'improved_bn', 'improved_3x3', 'improved_5l_rf15'],
                         help='SRCNN model type')
     parser.add_argument('--epochs-srcnn', type=int, default=100,
                         help='Number of epochs for SRCNN training')
@@ -236,8 +236,8 @@ Usage Examples:
     parser.add_argument('--pos-weight', type=float, default=5.0,
                         help='Positive sample weight (crack pixel weight)')
     parser.add_argument('--input-mode', type=str, default='restored',
-                        choices=['original', 'restored', 'improved', 'improved_3x3'],
-                        help='Input mode: original (HR), restored (basic SRCNN), improved, improved_3x3')
+                        choices=['original', 'restored', 'improved', 'improved_3x3', 'improved_5l_rf15'],
+                        help='Input mode: original (HR), restored (basic SRCNN), improved, improved_3x3, improved_5l_rf15')
     parser.add_argument('--use-original', action='store_true',
                         help='Shortcut for --input-mode original (for baseline comparison)')
     parser.add_argument('--use-restored', action='store_true',
