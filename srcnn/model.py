@@ -186,6 +186,44 @@ class ImprovedSRCNN_All3x3(nn.Module):
         return x + identity
 
 
+class ImprovedSRCNN_5L_RF15(nn.Module):
+    """
+    5-layer SRCNN with RF=15x15 for controlled ablation:
+    - 5x5 → 3x3 → 3x3 → 3x3 → 5x5
+    - Receptive field: 5 → 7 → 9 → 11 → 15
+    - No BatchNorm, with residual connection
+    """
+
+    def __init__(self, num_channels=3, num_features=64):
+        super(ImprovedSRCNN_5L_RF15, self).__init__()
+
+        self.conv1 = nn.Conv2d(num_channels, num_features, kernel_size=5, padding=2)
+        self.conv2 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
+        self.conv3 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
+        self.conv4 = nn.Conv2d(num_features, num_features, kernel_size=3, padding=1)
+        self.conv5 = nn.Conv2d(num_features, num_channels, kernel_size=5, padding=2)
+
+        self._initialize_weights()
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+
+    def forward(self, x):
+        identity = x
+
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = F.relu(self.conv4(x))
+        x = self.conv5(x)
+
+        return x + identity
+
+
 def compute_psnr(img1, img2):
     """Compute PSNR (Peak Signal-to-Noise Ratio)"""
     mse = torch.mean((img1 - img2) ** 2)

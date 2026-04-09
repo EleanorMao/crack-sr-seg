@@ -17,7 +17,7 @@ from config import (
     RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_BN, RESTORED_DIR_IMPROVED_3X3,
     DEVICE, SRCNNConfig, UNetConfig
 )
-from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, compute_psnr, compute_ssim
+from srcnn.model import SRCNN, ImprovedSRCNN, ImprovedSRCNN_BN, ImprovedSRCNN_All3x3, ImprovedSRCNN_5L_RF15, compute_psnr, compute_ssim
 from unet.model import UNet, CombinedLoss, compute_iou, compute_dice_coeff
 
 

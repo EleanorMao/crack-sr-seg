@@ -7,7 +7,9 @@ import numpy as np
 import random
 
 from config import (
-    HR_IMAGE_DIR, RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_3X3, ENHANCED_MASK_DIR, UNetConfig, DEVICE
+    HR_IMAGE_DIR, RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_3X3,
+    RESTORED_DIR_IMPROVED_5L_RF15,
+    ENHANCED_MASK_DIR, UNetConfig, DEVICE
 )
 
 
@@ -30,6 +32,10 @@ class UNetDataset(Dataset):
 
         if input_dir is not None:
             self.input_dir = input_dir
+        elif input_mode == 'improved_5l_rf15':
+            self.input_dir = os.path.join(RESTORED_DIR_IMPROVED_5L_RF15, split)
+            if not os.path.exists(self.input_dir):
+                print(f"Warning: Improved 5L RF15 restored directory not found {self.input_dir}")
         elif input_mode == 'improved_3x3':
             self.input_dir = os.path.join(RESTORED_DIR_IMPROVED_3X3, split)
             if not os.path.exists(self.input_dir):
@@ -132,6 +138,8 @@ class UNetTestDataset(Dataset):
     def __init__(self, split='test', input_mode='restored', input_dir=None):
         if input_dir is not None:
             self.input_dir = input_dir
+        elif input_mode == 'improved_5l_rf15':
+            self.input_dir = os.path.join(RESTORED_DIR_IMPROVED_5L_RF15, split)
         elif input_mode == 'improved_3x3':
             self.input_dir = os.path.join(RESTORED_DIR_IMPROVED_3X3, split)
         elif input_mode == 'improved':

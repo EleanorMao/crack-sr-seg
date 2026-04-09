@@ -25,19 +25,23 @@ crack-sr-seg/
 │   ├── improved_srcnn_best.pth           # Improved SRCNN
 │   ├── improved_srcnn_all3x3_best.pth    # Improved SRCNN (all 3x3 kernels)
 │   ├── improved_srcnn_bn_best.pth        # Improved SRCNN (with BatchNorm)
+│   ├── improved_srcnn_5l_rf15_best.pth   # Improved SRCNN (5-layer RF=15) [ablation]
 │   ├── unet_original_best.pth            # U-Net (original HR)
 │   ├── unet_restored_best.pth            # U-Net (basic SRCNN restored)
 │   ├── unet_improved_best.pth            # U-Net (improved SRCNN restored)
-│   └── unet_improved_3x3_best.pth        # U-Net (improved_3x3 SRCNN restored)
+│   ├── unet_improved_3x3_best.pth        # U-Net (improved_3x3 SRCNN restored)
+│   └── unet_improved_5l_rf15_best.pth    # U-Net (improved_5l_rf15 SRCNN restored) [ablation]
 ├── outputs/               # Output results
 │   ├── restored/                        # Basic SRCNN restored images
 │   ├── restored_improved/               # Improved SRCNN restored images
 │   ├── restored_improved_bn/            # Improved SRCNN (BatchNorm) restored images
 │   ├── restored_improved_3x3/           # Improved 3x3 SRCNN restored images
+│   ├── restored_improved_5l_rf15/       # Improved 5-layer RF=15 SRCNN restored images [ablation]
 │   ├── predictions_original/            # U-Net predictions (original HR)
 │   ├── predictions_restored/            # U-Net predictions (basic SRCNN)
 │   ├── predictions_improved/            # U-Net predictions (improved SRCNN)
-│   └── predictions_improved_3x3/        # U-Net predictions (improved_3x3 SRCNN)
+│   ├── predictions_improved_3x3/        # U-Net predictions (improved_3x3 SRCNN)
+│   └── predictions_improved_5l_rf15/    # U-Net predictions (improved_5l_rf15 SRCNN) [ablation]
 ├── srcnn/                 # SRCNN module
 │   ├── model.py
 │   ├── dataset.py
@@ -86,6 +90,9 @@ python main.py --mode train-srcnn --model-type improved_3x3 --epochs-srcnn 100
 
 # Improved SRCNN (with BatchNorm)
 python main.py --mode train-srcnn --model-type improved_bn --epochs-srcnn 100
+
+# Improved SRCNN (5-layer RF=15) - Ablation
+python main.py --mode train-srcnn --model-type improved_5l_rf15 --epochs-srcnn 100
 ```
 
 #### 3. Test SRCNN (Generate Restored Images)
@@ -102,6 +109,9 @@ python main.py --mode test-srcnn --model-type improved_bn --test-split all
 
 # Improved 3x3 SRCNN -> outputs/restored_improved_3x3/
 python main.py --mode test-srcnn --model-type improved_3x3 --test-split all
+
+# Improved 5-layer RF=15 SRCNN -> outputs/restored_improved_5l_rf15/
+python main.py --mode test-srcnn --model-type improved_5l_rf15 --test-split all
 ```
 
 #### 4. Train U-Net
@@ -122,6 +132,9 @@ python main.py --mode train-unet --use-improved --epochs-unet 100
 # Improved 3x3 SRCNN restored images - Best PSNR (30.81 dB)
 python main.py --mode train-unet --use-3x3 --epochs-unet 100
 # or: python main.py --mode train-unet --input-mode improved_3x3 --epochs-unet 100
+
+# Improved 5-layer RF=15 SRCNN restored images (Ablation)
+python main.py --mode train-unet --input-mode improved_5l_rf15 --epochs-unet 100
 ```
 
 #### 5. Test U-Net
@@ -138,6 +151,9 @@ python main.py --mode test-unet --use-improved --test-split test
 
 # Improved 3x3 SRCNN -> outputs/predictions_improved_3x3/
 python main.py --mode test-unet --use-3x3 --test-split test
+
+# Improved 5-layer RF=15 -> outputs/predictions_improved_5l_rf15/
+python main.py --mode test-unet --input-mode improved_5l_rf15 --test-split test
 ```
 
 ## Experimental Results
@@ -172,8 +188,8 @@ python main.py --mode test-unet --use-3x3 --test-split test
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `--mode` | Run mode (preprocess/train-srcnn/test-srcnn/train-unet/test-unet/full) | full |
-| `--model-type` | SRCNN type (srcnn/improved/improved_bn/improved_3x3) | srcnn |
-| `--input-mode` | U-Net input (original/restored/improved/improved_3x3) | restored |
+| `--model-type` | SRCNN type (srcnn/improved/improved_bn/improved_3x3/improved_5l_rf15) | srcnn |
+| `--input-mode` | U-Net input (original/restored/improved/improved_3x3/improved_5l_rf15) | restored |
 | `--use-original` | Shortcut for `--input-mode original` | - |
 | `--use-restored` | Shortcut for `--input-mode restored` | - |
 | `--use-improved` | Shortcut for `--input-mode improved` | - |

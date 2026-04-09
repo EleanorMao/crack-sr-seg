@@ -8,9 +8,13 @@ from tqdm import tqdm
 from config import (
     DEVICE, UNET_CHECKPOINT, UNET_CHECKPOINT_RESTORED, UNET_CHECKPOINT_ORIGINAL,
     UNET_CHECKPOINT_IMPROVED, UNET_CHECKPOINT_IMPROVED_3X3,
+    UNET_CHECKPOINT_IMPROVED_5L_RF15,
     PREDICTIONS_DIR, PREDICTIONS_DIR_RESTORED, PREDICTIONS_DIR_ORIGINAL,
     PREDICTIONS_DIR_IMPROVED, PREDICTIONS_DIR_IMPROVED_3X3,
-    HR_IMAGE_DIR, RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_3X3, ENHANCED_MASK_DIR, UNetConfig
+    PREDICTIONS_DIR_IMPROVED_5L_RF15,
+    HR_IMAGE_DIR, RESTORED_DIR, RESTORED_DIR_IMPROVED, RESTORED_DIR_IMPROVED_3X3,
+    RESTORED_DIR_IMPROVED_5L_RF15,
+    ENHANCED_MASK_DIR, UNetConfig
 )
 from unet.model import (
     UNet, compute_iou, compute_dice_coeff, compute_pixel_accuracy
@@ -28,7 +32,9 @@ class UNetTester:
 
         # Select default checkpoint based on input_mode
         if checkpoint_path is None:
-            if input_mode == 'improved_3x3':
+            if input_mode == 'improved_5l_rf15':
+                checkpoint_path = UNET_CHECKPOINT_IMPROVED_5L_RF15
+            elif input_mode == 'improved_3x3':
                 checkpoint_path = UNET_CHECKPOINT_IMPROVED_3X3
             elif input_mode == 'improved':
                 checkpoint_path = UNET_CHECKPOINT_IMPROVED
