@@ -1,58 +1,12 @@
 # Road Crack Restoration and Annotation System
 
+[github](https://github.com/EleanorMao/crack-sr-seg)
+[dataset - baiduyun]()
+
 A deep learning-based system for road crack image restoration and segmentation, consisting of two core modules:
 
 1. **SRCNN** - Image Restoration: Restore low-quality crack images to high-resolution
 2. **U-Net** - Crack Segmentation: Annotate cracks on restored images
-
-## Project Structure
-
-```
-crack-sr-seg/
-├── config.py              # Configuration (all tunable parameters)
-├── main.py                # Main entry point
-├── preprocess.py          # Image preprocessing (degradation + smart degradation)
-├── requirements.txt       # Python dependencies
-├── dataset/               # Original dataset (CRACK500)
-│   ├── image/            # Original images (.jpg)
-│   └── masks/            # Annotation masks (.png)
-├── processed_data/        # Preprocessed data (auto-generated)
-│   ├── lr_images/        # Low-quality images
-│   ├── hr_images/        # High-quality images
-│   └── enhanced_masks/   # Enhanced masks
-├── checkpoints/           # Model checkpoints
-│   ├── srcnn_best.pth                    # Basic SRCNN
-│   ├── improved_srcnn_best.pth           # Improved SRCNN
-│   ├── improved_srcnn_all3x3_best.pth    # Improved SRCNN (all 3x3 kernels)
-│   ├── improved_srcnn_bn_best.pth        # Improved SRCNN (with BatchNorm)
-│   ├── improved_srcnn_5l_rf15_best.pth   # Improved SRCNN (5-layer RF=15) [ablation]
-│   ├── unet_original_best.pth            # U-Net (original HR)
-│   ├── unet_restored_best.pth            # U-Net (basic SRCNN restored)
-│   ├── unet_improved_best.pth            # U-Net (improved SRCNN restored)
-│   ├── unet_improved_3x3_best.pth        # U-Net (improved_3x3 SRCNN restored)
-│   └── unet_improved_5l_rf15_best.pth    # U-Net (improved_5l_rf15 SRCNN restored) [ablation]
-├── outputs/               # Output results
-│   ├── restored/                        # Basic SRCNN restored images
-│   ├── restored_improved/               # Improved SRCNN restored images
-│   ├── restored_improved_bn/            # Improved SRCNN (BatchNorm) restored images
-│   ├── restored_improved_3x3/           # Improved 3x3 SRCNN restored images
-│   ├── restored_improved_5l_rf15/       # Improved 5-layer RF=15 SRCNN restored images [ablation]
-│   ├── predictions_original/            # U-Net predictions (original HR)
-│   ├── predictions_restored/            # U-Net predictions (basic SRCNN)
-│   ├── predictions_improved/            # U-Net predictions (improved SRCNN)
-│   ├── predictions_improved_3x3/        # U-Net predictions (improved_3x3 SRCNN)
-│   └── predictions_improved_5l_rf15/    # U-Net predictions (improved_5l_rf15 SRCNN) [ablation]
-├── srcnn/                 # SRCNN module
-│   ├── model.py
-│   ├── dataset.py
-│   ├── train.py
-│   └── test.py
-└── unet/                  # U-Net module
-    ├── model.py
-    ├── dataset.py
-    ├── train.py
-    └── test.py
-```
 
 ## Installation
 
@@ -61,12 +15,6 @@ pip install -r requirements.txt
 ```
 
 ## Quick Start
-
-### Full Pipeline
-
-```bash
-python main.py --mode full
-```
 
 ### Step-by-Step Execution
 
@@ -80,19 +28,19 @@ python main.py --mode preprocess --split all
 
 ```bash
 # Basic SRCNN
-python main.py --mode train-srcnn --model-type srcnn --epochs-srcnn 100
+python main.py --mode train-srcnn --model-type srcnn 
 
 # Improved SRCNN
-python main.py --mode train-srcnn --model-type improved --epochs-srcnn 100
+python main.py --mode train-srcnn --model-type improved 
 
 # Improved SRCNN (all 3x3 kernels) - Best PSNR
-python main.py --mode train-srcnn --model-type improved_3x3 --epochs-srcnn 100
+python main.py --mode train-srcnn --model-type improved_3x3 
 
 # Improved SRCNN (with BatchNorm)
-python main.py --mode train-srcnn --model-type improved_bn --epochs-srcnn 100
+python main.py --mode train-srcnn --model-type improved_bn 
 
 # Improved SRCNN (5-layer RF=15) - Ablation
-python main.py --mode train-srcnn --model-type improved_5l_rf15 --epochs-srcnn 100
+python main.py --mode train-srcnn --model-type improved_5l_rf15 
 ```
 
 #### 3. Test SRCNN (Generate Restored Images)
@@ -118,23 +66,23 @@ python main.py --mode test-srcnn --model-type improved_5l_rf15 --test-split all
 
 ```bash
 # Original HR images
-python main.py --mode train-unet --use-original --epochs-unet 100
-# or: python main.py --mode train-unet --input-mode original --epochs-unet 100
+python main.py --mode train-unet --use-original 
+# or: python main.py --mode train-unet --input-mode original 
 
 # Basic SRCNN restored images
-python main.py --mode train-unet --use-restored --epochs-unet 100
-# or: python main.py --mode train-unet --input-mode restored --epochs-unet 100
+python main.py --mode train-unet --use-restored 
+# or: python main.py --mode train-unet --input-mode restored 
 
 # Improved SRCNN restored images - Best IoU (87.28%)
-python main.py --mode train-unet --use-improved --epochs-unet 100
-# or: python main.py --mode train-unet --input-mode improved --epochs-unet 100
+python main.py --mode train-unet --use-improved 
+# or: python main.py --mode train-unet --input-mode improved 
 
 # Improved 3x3 SRCNN restored images - Best PSNR (30.81 dB)
-python main.py --mode train-unet --use-3x3 --epochs-unet 100
-# or: python main.py --mode train-unet --input-mode improved_3x3 --epochs-unet 100
+python main.py --mode train-unet --use-3x3 
+# or: python main.py --mode train-unet --input-mode improved_3x3 
 
 # Improved 5-layer RF=15 SRCNN restored images (Ablation)
-python main.py --mode train-unet --input-mode improved_5l_rf15 --epochs-unet 100
+python main.py --mode train-unet --input-mode improved_5l_rf15 
 ```
 
 #### 5. Test U-Net
